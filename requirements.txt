@@ -8,4 +8,5 @@ pypdf
 pandas
 openpyxl
 sentence-transformers
+langchain-huggingface
 tiktoken
