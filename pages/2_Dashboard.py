@@ -316,6 +316,29 @@ body { background: #0a1a0e !important; }
     max-width: 80%;
 }
 
+[data-testid="stChatMessage"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 0.9rem !important;
+    margin-bottom: 0.4rem !important;
+}
+[data-testid="stChatMessage"] p {
+    font-size: 0.85rem !important;
+    color: rgba(232,244,240,0.8) !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+[data-testid="stChatMessage"] [data-testid="chatAvatarIcon-user"] {
+    background: rgba(82,183,136,0.2) !important;
+    border: 1px solid rgba(82,183,136,0.3) !important;
+    color: #52b788 !important;
+}
+[data-testid="stChatMessage"] [data-testid="chatAvatarIcon-assistant"] {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
 [data-testid="stExpander"] {
     background: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.07) !important;
@@ -384,31 +407,21 @@ col_left, col_right = st.columns([1.4, 1], gap="large")
 with col_left:
     messages = st.session_state.get("messages", [])
     st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
-    st.markdown('<div class="chat-history-box">', unsafe_allow_html=True)
+
     if not messages:
         st.markdown("""
-        <div style="text-align:center;padding:2.5rem 1rem;">
-            <div style="font-size:0.88rem;font-weight:600;color:rgba(232,244,240,0.3);margin-bottom:0.4rem;">No conversations yet</div>
-            <div style="font-size:0.78rem;color:rgba(232,244,240,0.18);">Head to CFO Chat to get started.</div>
+        <div class="chat-history-box">
+            <div style="text-align:center;padding:2.5rem 1rem;">
+                <div style="font-size:0.88rem;font-weight:600;color:rgba(232,244,240,0.3);margin-bottom:0.4rem;">No conversations yet</div>
+                <div style="font-size:0.78rem;color:rgba(232,244,240,0.18);">Head to CFO Chat to get started.</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Show last 6 messages (3 exchanges)
         recent = messages[-6:] if len(messages) > 6 else messages
         for msg in recent:
-            if msg["role"] == "user":
-                st.markdown(f"""
-                <div class="hist-row-user">
-                    <div class="hist-bubble-user">{msg['content']}</div>
-                </div>""", unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div class="hist-row-ai">
-                    <div class="hist-avatar">CFO</div>
-                    <div class="hist-bubble-ai">{msg['content']}</div>
-                </div>""", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    if messages:
+            with st.chat_message("user" if msg["role"] == "user" else "assistant"):
+                st.markdown(msg["content"])
         if st.button("Continue in CFO Chat", key="goto_chat"):
             st.switch_page("pages/1_Chat.py")
 
