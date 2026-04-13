@@ -213,13 +213,32 @@ body { background: #0a1a0e !important; }
 }
 
 [data-testid="stFileUploader"] section {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] {
     background: rgba(255,255,255,0.03) !important;
     border: 1px dashed rgba(82,183,136,0.25) !important;
     border-radius: 12px !important;
-    backdrop-filter: blur(10px) !important;
+    padding: 0.8rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
 }
-[data-testid="stFileUploader"] * { font-family: inherit !important; color: rgba(232,244,240,0.6) !important; }
-[data-testid="stFileUploaderDropzone"] { display: none !important; }
+[data-testid="stFileUploaderDropzone"] > div { display: none !important; }
+[data-testid="stFileUploaderDropzone"] > button {
+    display: flex !important;
+    background: rgba(82,183,136,0.1) !important;
+    color: #52b788 !important;
+    border: 1px solid rgba(82,183,136,0.3) !important;
+    border-radius: 8px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1rem !important;
+    font-family: inherit !important;
+}
+[data-testid="stFileUploader"] * { font-family: inherit !important; }
 
 .success-file {
     background: rgba(82,183,136,0.08);
