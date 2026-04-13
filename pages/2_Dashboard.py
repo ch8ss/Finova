@@ -258,19 +258,14 @@ body { background: #0a1a0e !important; }
     height: 16px !important;
 }
 
-.chat-history-box {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 0.5rem 0;
-    min-height: 180px;
-    max-height: 360px;
-    overflow-y: auto;
-    margin-bottom: 0.75rem;
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 14px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
-.chat-history-box::-webkit-scrollbar { width: 3px; }
-.chat-history-box::-webkit-scrollbar-thumb { background: rgba(82,183,136,0.2); border-radius: 2px; }
-.chat-history-box .stButton > button {
+[data-testid="stVerticalBlockBorderWrapper"] .stButton > button {
     background: transparent !important;
     border: none !important;
     border-bottom: 1px solid rgba(255,255,255,0.04) !important;
@@ -283,11 +278,12 @@ body { background: #0a1a0e !important; }
     width: 100% !important;
     box-shadow: none !important;
     justify-content: flex-start !important;
+    margin: 0 !important;
 }
-.chat-history-box .stButton > button:hover {
+[data-testid="stVerticalBlockBorderWrapper"] .stButton > button:hover {
     background: rgba(82,183,136,0.06) !important;
     color: rgba(232,244,240,0.9) !important;
-    border-color: rgba(255,255,255,0.04) !important;
+    border-bottom-color: rgba(255,255,255,0.04) !important;
     transform: none !important;
     box-shadow: none !important;
 }
@@ -368,21 +364,18 @@ with col_left:
 
     if not user_messages:
         st.markdown("""
-        <div class="chat-history-box">
-            <div style="text-align:center;padding:2.5rem 1rem;">
-                <div style="font-size:0.88rem;font-weight:600;color:rgba(232,244,240,0.3);margin-bottom:0.4rem;">No conversations yet</div>
-                <div style="font-size:0.78rem;color:rgba(232,244,240,0.18);">Head to CFO Chat to get started.</div>
-            </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;text-align:center;padding:2.5rem 1rem;">
+            <div style="font-size:0.88rem;font-weight:600;color:rgba(232,244,240,0.3);margin-bottom:0.4rem;">No conversations yet</div>
+            <div style="font-size:0.78rem;color:rgba(232,244,240,0.18);">Head to CFO Chat to get started.</div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown('<div class="chat-history-box">', unsafe_allow_html=True)
-        for i, msg in enumerate(user_messages):
-            text = msg["content"]
-            truncated = text if len(text) <= 60 else text[:57] + "..."
-            if st.button(f"{i + 1}   {truncated}", key=f"hist_{i}"):
-                st.switch_page("pages/1_Chat.py")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            for i, msg in enumerate(user_messages):
+                text = msg["content"]
+                truncated = text if len(text) <= 60 else text[:57] + "..."
+                if st.button(f"{i + 1}   {truncated}", key=f"hist_{i}"):
+                    st.switch_page("pages/1_Chat.py")
 
 with col_right:
     st.markdown('<div class="section-label">What Finova Can Do</div>', unsafe_allow_html=True)
