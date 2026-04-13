@@ -219,9 +219,7 @@ body { background: #0a1a0e !important; }
     backdrop-filter: blur(10px) !important;
 }
 [data-testid="stFileUploader"] * { font-family: inherit !important; color: rgba(232,244,240,0.6) !important; }
-[data-testid="stFileUploaderDropzone"] { display: flex; flex-direction: column; align-items: center; padding: 1rem !important; }
-[data-testid="stFileUploaderDropzone"] > div[data-testid="stFileUploaderDropzoneInstructions"] { display: none !important; }
-[data-testid="stFileUploader"] label { display: none !important; }
+[data-testid="stFileUploaderDropzone"] { display: none !important; }
 
 .success-file {
     background: rgba(82,183,136,0.08);
