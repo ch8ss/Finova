@@ -59,16 +59,35 @@ body { background: #0a1a0e !important; }
     text-align: center;
 }
 .brand-name {
-    font-size: 2.5rem;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+    font-size: 4.5rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
     color: #e8f4f0;
-    margin-bottom: 0.4rem;
+    margin: 0 auto 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+    border-right: 3px solid rgba(82,183,136,0.8);
+    animation:
+        finova-type 0.9s steps(6, end) 0.2s forwards,
+        finova-blink 0.7s step-end 6;
+}
+@keyframes finova-type {
+    to { width: 7ch }
+}
+@keyframes finova-blink {
+    from, to { border-color: transparent }
+    50% { border-color: rgba(82,183,136,0.8) }
 }
 .brand-sub {
     font-size: 0.9rem;
     color: rgba(232,244,240,0.45);
     font-weight: 400;
+    opacity: 0;
+    animation: finova-sub-fade 0.5s ease 1.2s forwards;
+}
+@keyframes finova-sub-fade {
+    to { opacity: 1 }
 }
 
 .glass-card {
