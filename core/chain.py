@@ -7,6 +7,8 @@ import tempfile
 import os
 
 def process_uploaded_files(uploaded_files, user_id: str = None):
+    if not user_id:
+        return
     all_docs = []
     for f in uploaded_files:
         ext = f.name.split(".")[-1].lower()
@@ -16,13 +18,12 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         try:
             docs = load_document(tmp_path, ext)
             all_docs.extend(docs)
-            if user_id:
-                save_document(user_id, f.name, ext)
+            save_document(user_id, f.name, ext)
         finally:
             os.unlink(tmp_path)
 
     if all_docs:
-        get_vectorstore(documents=all_docs)
+        get_vectorstore(user_id, documents=all_docs)
 
 def ask(question: str, session_id: str, user_id: str = None):
     llm = get_llm()
@@ -30,13 +31,14 @@ def ask(question: str, session_id: str, user_id: str = None):
 
     # Retrieve relevant context from vectorstore
     context = ""
-    try:
-        vectorstore = get_vectorstore()
-        results = vectorstore.similarity_search(question, k=3)
-        if results:
-            context = "\n\n".join([r.page_content for r in results])
-    except Exception:
-        pass
+    if user_id:
+        try:
+            vectorstore = get_vectorstore(user_id)
+            results = vectorstore.similarity_search(question, k=3)
+            if results:
+                context = "\n\n".join([r.page_content for r in results])
+        except Exception:
+            pass
 
     # Build chat history string
     history = ""

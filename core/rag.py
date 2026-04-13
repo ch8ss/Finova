@@ -7,13 +7,18 @@ import pandas as pd
 import tempfile
 import os
 
-VECTORSTORE_PATH = "data/vectorstore"
+BASE_VECTORSTORE_PATH = "data/vectorstore"
 
 @st.cache_resource(show_spinner=False)
 def get_embeddings():
     return HuggingFaceEmbeddings(
         model_name="all-MiniLM-L6-v2"
     )
+
+def _user_path(user_id: str) -> str:
+    path = os.path.join(BASE_VECTORSTORE_PATH, user_id)
+    os.makedirs(path, exist_ok=True)
+    return path
 
 def load_document(file_path: str, file_type: str):
     if file_type == "pdf":
@@ -32,25 +37,13 @@ def load_document(file_path: str, file_type: str):
 
     return loader.load()
 
-def get_vectorstore(documents=None):
+def get_vectorstore(user_id: str, documents=None):
     embeddings = get_embeddings()
-    os.makedirs(VECTORSTORE_PATH, exist_ok=True)
+    path = _user_path(user_id)
 
     if documents:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50,
-        )
+        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(documents)
-        vectorstore = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            persist_directory=VECTORSTORE_PATH,
-        )
+        return Chroma.from_documents(documents=chunks, embedding=embeddings, persist_directory=path)
     else:
-        vectorstore = Chroma(
-            persist_directory=VECTORSTORE_PATH,
-            embedding_function=embeddings,
-        )
-
-    return vectorstore
+        return Chroma(persist_directory=path, embedding_function=embeddings)

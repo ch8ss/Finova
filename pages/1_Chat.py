@@ -356,7 +356,7 @@ with st.sidebar:
         if st.session_state.get("uploaded_files") != sidebar_upload:
             st.session_state["uploaded_files"] = sidebar_upload
             with st.spinner("Processing..."):
-                process_uploaded_files(sidebar_upload)
+                process_uploaded_files(sidebar_upload, user_id=st.session_state.get("user_id"))
         files_html = "".join(f'<div style="font-size:0.75rem;color:#52b788;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">&#10003; {f.name}</div>' for f in sidebar_upload)
         st.markdown(f'<div style="margin-top:0.5rem;">{files_html}</div>', unsafe_allow_html=True)
 
