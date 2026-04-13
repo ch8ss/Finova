@@ -53,8 +53,11 @@ owner_name = st.session_state.get("owner_name", "")
 business_name = st.session_state.get("business_name", "")
 business_type = st.session_state.get("business_type", "")
 
-st.markdown("""<style>[data-testid="collapsedControl"] { display: none !important; }
-section[data-testid="stSidebar"] { transform: none !important; min-width: 240px !important; }</style>""", unsafe_allow_html=True)
+st.markdown("""<style>
+[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebar"] { transform: none !important; min-width: 240px !important; }
+[data-testid="stSidebarNav"] { display: none !important; }
+</style>""", unsafe_allow_html=True)
 
 st.markdown("""
 <style>
@@ -328,18 +331,6 @@ st.markdown(f"""
 <div class="page-sub">Welcome back, {owner_name}. {business_type} dashboard.</div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="section-label">Financial Overview</div>', unsafe_allow_html=True)
-c1, c2, c3, c4 = st.columns(4, gap="medium")
-for col, label in zip([c1, c2, c3, c4], ["Revenue", "Expenses", "Net Profit", "Cash Position"]):
-    with col:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">Upload data<br>to see metrics</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
 
 col_left, col_right = st.columns([1.4, 1], gap="large")
 

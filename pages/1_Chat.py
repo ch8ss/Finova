@@ -53,8 +53,11 @@ owner_name = st.session_state.get("owner_name", "")
 business_name = st.session_state.get("business_name", "")
 business_type = st.session_state.get("business_type", "")
 
-st.markdown("""<style>[data-testid="collapsedControl"] { display: none !important; }
-section[data-testid="stSidebar"] { transform: none !important; min-width: 240px !important; }</style>""", unsafe_allow_html=True)
+st.markdown("""<style>
+[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebar"] { transform: none !important; min-width: 240px !important; }
+[data-testid="stSidebarNav"] { display: none !important; }
+</style>""", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
