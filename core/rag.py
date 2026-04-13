@@ -2,12 +2,14 @@ from langchain_community.document_loaders import PyPDFLoader, CSVLoader, TextLoa
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
+import streamlit as st
 import pandas as pd
 import tempfile
 import os
 
 VECTORSTORE_PATH = "data/vectorstore"
 
+@st.cache_resource(show_spinner=False)
 def get_embeddings():
     return HuggingFaceEmbeddings(
         model_name="all-MiniLM-L6-v2"
