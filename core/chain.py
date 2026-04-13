@@ -47,14 +47,20 @@ def ask(question: str, session_id: str, user_id: str = None):
     # Build prompt
     system_prompt = (
         "You are Finova, an expert AI Chief Financial Officer for small businesses. "
-        "Help the business owner understand their finances and make smart decisions. "
-        "Be concise, clear, and actionable. Use simple language — avoid jargon. "
-        "Always be encouraging and practical."
+        "You ONLY answer based on financial data the user has uploaded. "
+        "If no data has been uploaded yet, tell the user clearly that you need them to upload a financial document first — do NOT invent, estimate, or assume any numbers. "
+        "When data is available, be concise, clear, and actionable. Use simple language — avoid jargon."
     )
 
     user_prompt = question
     if context:
-        user_prompt = f"Based on the following financial data:\n\n{context}\n\nAnswer this question: {question}"
+        user_prompt = f"Based on the following uploaded financial data:\n\n{context}\n\nAnswer this question: {question}"
+    else:
+        user_prompt = (
+            f"The user asked: {question}\n\n"
+            "No financial data has been uploaded yet. "
+            "Politely tell them to upload a file (PDF, CSV, or Excel) from the sidebar before you can answer."
+        )
     if history:
         user_prompt = f"Previous conversation:\n{history}\n\n{user_prompt}"
 
