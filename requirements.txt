@@ -7,6 +7,7 @@ python-dotenv
 pypdf
 pandas
 openpyxl
-sentence-transformers
+sentence-transformers<3.0
 langchain-huggingface
+langchain-text-splitters
 tiktoken
