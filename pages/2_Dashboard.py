@@ -262,82 +262,39 @@ body { background: #0a1a0e !important; }
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 14px;
-    padding: 1.2rem 1.4rem;
-    min-height: 220px;
-    max-height: 380px;
+    padding: 0.5rem 0;
+    min-height: 180px;
+    max-height: 360px;
     overflow-y: auto;
     margin-bottom: 0.75rem;
 }
 .chat-history-box::-webkit-scrollbar { width: 3px; }
 .chat-history-box::-webkit-scrollbar-thumb { background: rgba(82,183,136,0.2); border-radius: 2px; }
-.hist-row-user {
-    display: flex;
-    justify-content: flex-end;
-    margin: 0.5rem 0;
-}
-.hist-bubble-user {
-    background: rgba(82,183,136,0.15);
-    border: 1px solid rgba(82,183,136,0.25);
-    color: #e8f4f0;
-    font-size: 0.82rem;
-    padding: 0.55rem 0.9rem;
-    border-radius: 12px 12px 3px 12px;
-    max-width: 75%;
-    line-height: 1.5;
-}
-.hist-row-ai {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    margin: 0.5rem 0;
-}
-.hist-avatar {
-    min-width: 28px;
-    height: 28px;
-    background: rgba(82,183,136,0.15);
-    border: 1px solid rgba(82,183,136,0.25);
-    border-radius: 7px;
+.hist-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 0.58rem;
-    font-weight: 700;
-    color: #52b788;
-    letter-spacing: 0.02em;
+    gap: 0.75rem;
+    padding: 0.65rem 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
 }
-.hist-bubble-ai {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
-    color: rgba(232,244,240,0.75);
-    font-size: 0.82rem;
-    line-height: 1.55;
-    padding: 0.55rem 0.9rem;
-    border-radius: 3px 12px 12px 12px;
-    max-width: 80%;
+.hist-item:last-child { border-bottom: none; }
+.hist-item:hover { background: rgba(82,183,136,0.05); }
+.hist-index {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(82,183,136,0.45);
+    min-width: 16px;
+    text-align: right;
+}
+.hist-text {
+    font-size: 0.83rem;
+    color: rgba(232,244,240,0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-[data-testid="stChatMessage"] {
-    background: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
-    border-radius: 10px !important;
-    padding: 0.6rem 0.9rem !important;
-    margin-bottom: 0.4rem !important;
-}
-[data-testid="stChatMessage"] p {
-    font-size: 0.85rem !important;
-    color: rgba(232,244,240,0.8) !important;
-    line-height: 1.6 !important;
-    margin: 0 !important;
-}
-[data-testid="stChatMessage"] [data-testid="chatAvatarIcon-user"] {
-    background: rgba(82,183,136,0.2) !important;
-    border: 1px solid rgba(82,183,136,0.3) !important;
-    color: #52b788 !important;
-}
-[data-testid="stChatMessage"] [data-testid="chatAvatarIcon-assistant"] {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-}
 
 [data-testid="stExpander"] {
     background: rgba(255,255,255,0.03) !important;
@@ -408,7 +365,9 @@ with col_left:
     messages = st.session_state.get("messages", [])
     st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
 
-    if not messages:
+    user_messages = [m for m in messages if m["role"] == "user"]
+
+    if not user_messages:
         st.markdown("""
         <div class="chat-history-box">
             <div style="text-align:center;padding:2.5rem 1rem;">
@@ -418,10 +377,16 @@ with col_left:
         </div>
         """, unsafe_allow_html=True)
     else:
-        recent = messages[-6:] if len(messages) > 6 else messages
-        for msg in recent:
-            with st.chat_message("user" if msg["role"] == "user" else "assistant"):
-                st.markdown(msg["content"])
+        items_html = ""
+        for i, msg in enumerate(user_messages):
+            text = msg["content"]
+            truncated = text if len(text) <= 60 else text[:57] + "..."
+            items_html += f"""
+            <div class="hist-item">
+                <span class="hist-index">{i + 1}</span>
+                <span class="hist-text">{truncated}</span>
+            </div>"""
+        st.markdown(f'<div class="chat-history-box">{items_html}</div>', unsafe_allow_html=True)
         if st.button("Continue in CFO Chat", key="goto_chat"):
             st.switch_page("pages/1_Chat.py")
 
