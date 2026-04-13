@@ -216,27 +216,45 @@ body { background: #0a1a0e !important; }
     background: rgba(255,255,255,0.03) !important;
     border: 1px dashed rgba(82,183,136,0.2) !important;
     border-radius: 12px !important;
-    padding: 1rem 0.75rem !important;
+    padding: 1.1rem 1.2rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    flex-wrap: wrap !important;
 }
-[data-testid="stFileUploaderDropzone"] p,
-[data-testid="stFileUploaderDropzone"] span,
-[data-testid="stFileUploaderDropzone"] small {
+[data-testid="stFileUploaderDropzone"] > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] p {
+    color: rgba(232,244,240,0.55) !important;
+    font-size: 0.82rem !important;
+    font-family: inherit !important;
+    margin: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] span {
     color: rgba(232,244,240,0.3) !important;
-    font-size: 0.75rem !important;
+    font-size: 0.72rem !important;
     font-family: inherit !important;
 }
 [data-testid="stFileUploaderDropzone"] button {
-    background: rgba(82,183,136,0.1) !important;
+    background: rgba(82,183,136,0.15) !important;
     color: #52b788 !important;
-    border: 1px solid rgba(82,183,136,0.3) !important;
+    border: 1px solid rgba(82,183,136,0.35) !important;
     border-radius: 8px !important;
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
     font-weight: 600 !important;
     font-family: inherit !important;
-    padding: 0.4rem 1rem !important;
-    width: 100% !important;
+    padding: 0.45rem 1.1rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
-[data-testid="stFileUploaderDropzone"] svg { display: none !important; }
+[data-testid="stFileUploaderDropzone"] svg {
+    color: rgba(232,244,240,0.3) !important;
+    width: 16px !important;
+    height: 16px !important;
+}
 
 .success-file {
     background: rgba(82,183,136,0.08);
@@ -246,6 +264,25 @@ body { background: #0a1a0e !important; }
     margin-bottom: 0.4rem;
     font-size: 0.8rem;
     color: #52b788;
+}
+
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 10px !important;
+    margin-bottom: 0.5rem !important;
+}
+[data-testid="stExpander"] summary {
+    font-size: 0.86rem !important;
+    font-weight: 600 !important;
+    color: #e8f4f0 !important;
+    padding: 0.75rem 1rem !important;
+}
+[data-testid="stExpander"] summary:hover { color: #52b788 !important; }
+[data-testid="stExpander"] svg { color: rgba(82,183,136,0.5) !important; }
+[data-testid="stExpander"] > div:last-child {
+    padding: 0.25rem 1rem 1rem !important;
+    border-top: 1px solid rgba(255,255,255,0.05) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -322,24 +359,35 @@ with col_left:
                 process_uploaded_files(uploaded)
         for f in uploaded:
             st.markdown(f'<div class="success-file">&#10003; {f.name}</div>', unsafe_allow_html=True)
-        st.success(f"{len(uploaded)} file(s) ready. Head to CFO Chat to analyse them.")
-        if st.button("Go to CFO Chat", key="goto_chat"):
-            st.switch_page("pages/1_Chat.py")
+        st.markdown('<div style="font-size:0.78rem;color:rgba(82,183,136,0.7);margin-top:0.5rem;">Ready — head to CFO Chat to analyse.</div>', unsafe_allow_html=True)
 
 with col_right:
     st.markdown('<div class="section-label">What Finova Can Do</div>', unsafe_allow_html=True)
-    for title, body in [
-        ("Analyse your data", "Upload financial documents and get instant insights on revenue, expenses and profit margins."),
-        ("Track patterns", "Finova identifies trends and flags anomalies across your financial history."),
-        ("Persistent memory", "Your CFO remembers past conversations to give smarter advice over time."),
-        ("Private by default", "All documents are processed locally. Nothing is shared externally."),
-    ]:
-        st.markdown(f"""
-        <div class="insight-card">
-            <div class="insight-title">{title}</div>
-            <div class="insight-body">{body}</div>
-        </div>
+
+    with st.expander("Analyse your data"):
+        st.markdown("""
+        <div class="insight-body" style="margin-bottom:0.6rem;">Upload financial documents and ask questions like:</div>
+        <div class="insight-body" style="color:rgba(82,183,136,0.7);font-style:italic;margin-bottom:0.4rem;">"What was my highest revenue month?"</div>
+        <div class="insight-body" style="color:rgba(232,244,240,0.55);">→ Your best month was December at $289,000, driven by strong holiday demand.</div>
         """, unsafe_allow_html=True)
 
-    if st.button("Ask your CFO", key="cfo_btn"):
-        st.switch_page("pages/1_Chat.py")
+    with st.expander("Track patterns"):
+        st.markdown("""
+        <div class="insight-body" style="margin-bottom:0.6rem;">Finova spots trends and flags anomalies across your history:</div>
+        <div class="insight-body" style="color:rgba(82,183,136,0.7);font-style:italic;margin-bottom:0.4rem;">"Are my expenses trending up?"</div>
+        <div class="insight-body" style="color:rgba(232,244,240,0.55);">→ Operating expenses rose 63% from Jan to Dec, outpacing revenue growth of 103%. Worth reviewing.</div>
+        """, unsafe_allow_html=True)
+
+    with st.expander("Ask about cash flow"):
+        st.markdown("""
+        <div class="insight-body" style="margin-bottom:0.6rem;">Get plain-English cash flow summaries:</div>
+        <div class="insight-body" style="color:rgba(82,183,136,0.7);font-style:italic;margin-bottom:0.4rem;">"Do I have enough cash to hire someone?"</div>
+        <div class="insight-body" style="color:rgba(232,244,240,0.55);">→ Your average monthly cash flow is $41,700. A new hire at $3,000/month is well within range.</div>
+        """, unsafe_allow_html=True)
+
+    with st.expander("Persistent memory"):
+        st.markdown("""
+        <div class="insight-body" style="margin-bottom:0.6rem;">Your CFO remembers previous conversations:</div>
+        <div class="insight-body" style="color:rgba(82,183,136,0.7);font-style:italic;margin-bottom:0.4rem;">"Last time you said my margins were low — is that still true?"</div>
+        <div class="insight-body" style="color:rgba(232,244,240,0.55);">→ Yes, your gross margin is 52%. Industry average for e-commerce is 40–60%, so you're in range but there's room to improve.</div>
+        """, unsafe_allow_html=True)

@@ -272,27 +272,45 @@ body { background: #0a1a0e !important; }
     background: rgba(255,255,255,0.03) !important;
     border: 1px dashed rgba(82,183,136,0.2) !important;
     border-radius: 10px !important;
-    padding: 1rem 0.75rem !important;
+    padding: 0.9rem 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    flex-wrap: wrap !important;
 }
-[data-testid="stFileUploaderDropzone"] p,
-[data-testid="stFileUploaderDropzone"] span,
-[data-testid="stFileUploaderDropzone"] small {
-    color: rgba(232,244,240,0.3) !important;
-    font-size: 0.75rem !important;
+[data-testid="stFileUploaderDropzone"] > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] p {
+    color: rgba(232,244,240,0.5) !important;
+    font-size: 0.8rem !important;
+    font-family: inherit !important;
+    margin: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] span {
+    color: rgba(232,244,240,0.28) !important;
+    font-size: 0.7rem !important;
     font-family: inherit !important;
 }
 [data-testid="stFileUploaderDropzone"] button {
-    background: rgba(82,183,136,0.1) !important;
+    background: rgba(82,183,136,0.15) !important;
     color: #52b788 !important;
-    border: 1px solid rgba(82,183,136,0.3) !important;
+    border: 1px solid rgba(82,183,136,0.35) !important;
     border-radius: 8px !important;
     font-size: 0.8rem !important;
     font-weight: 600 !important;
     font-family: inherit !important;
-    padding: 0.4rem 1rem !important;
-    width: 100% !important;
+    padding: 0.42rem 1rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
-[data-testid="stFileUploaderDropzone"] svg { display: none !important; }
+[data-testid="stFileUploaderDropzone"] svg {
+    color: rgba(232,244,240,0.25) !important;
+    width: 15px !important;
+    height: 15px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
