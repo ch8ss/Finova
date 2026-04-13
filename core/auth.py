@@ -8,7 +8,7 @@ def sign_up(email: str, password: str, owner_name: str, business_name: str, busi
         if not res.user:
             return None, None, "Sign up failed. Try a different email."
         user_id = str(res.user.id)
-        sb.table("users").insert({
+        sb.table("Users").insert({
             "id": user_id,
             "owner_name": owner_name,
             "business_name": business_name,
@@ -26,7 +26,7 @@ def sign_in(email: str, password: str):
         if not res.user:
             return None, None, "Invalid email or password."
         user_id = str(res.user.id)
-        profile = sb.table("users").select("owner_name, business_name, business_type").eq("id", user_id).single().execute()
+        profile = sb.table("Users").select("owner_name, business_name, business_type").eq("id", user_id).single().execute()
         return user_id, profile.data, None
     except Exception as e:
         return None, None, "Invalid email or password."
