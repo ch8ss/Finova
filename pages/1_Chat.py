@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+from core.chain import ask, process_uploaded_files
 
 st.set_page_config(page_title="Finova · CFO Chat", page_icon="💎", layout="wide")
 
@@ -214,7 +215,10 @@ with st.sidebar:
         key="sidebar_upload"
     )
     if sidebar_upload:
-        st.session_state["uploaded_files"] = sidebar_upload
+        if st.session_state.get("uploaded_files") != sidebar_upload:
+            st.session_state["uploaded_files"] = sidebar_upload
+            with st.spinner("Processing files..."):
+                process_uploaded_files(sidebar_upload)
         for f in sidebar_upload:
             st.success(f"✓ {f.name}")
 
@@ -330,20 +334,8 @@ if send and user_input and user_input.strip():
     st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
 
     with st.spinner("Your CFO is analysing..."):
-        time.sleep(1.2)
-
-        msg_lower = user_input.lower()
-        if "finova" in msg_lower:
-            reply = "🎉 Easter Egg Unlocked! You found the Finova secret! Built with ♥️ by a team of three — backend core, data & deployment, and frontend magic. Together we are Finova. 💎"
-        elif "hidden" in msg_lower or "secret" in msg_lower:
-            reply = "🕵️ Hidden Insight: The biggest silent killers for small businesses are delayed receivables and invisible recurring costs. Upload your financial data and I will pinpoint exactly where your money is leaking."
-        elif "hello" in msg_lower or "hi" in msg_lower:
-            reply = f"👋 Hello {owner_name}! I am your dedicated AI CFO for {business_name}. I can help you analyse revenue, track expenses, identify cost savings, forecast profits and much more. Upload your financial documents to get started with real data-driven insights!"
-        else:
-            # ── Connect to real backend here ──
-            # from core.chain import ask
-            # reply = ask(user_input, st.session_state["messages"])
-            reply = f"📊 Great question about **{business_name}**! To give you accurate, data-driven financial advice I need your financial documents. Please upload your sales CSV, invoice PDF or expense sheet from the sidebar. Once uploaded, I can analyse your real numbers and give you precise CFO-level insights! 💼"
+        session_id = business_name.lower().replace(" ", "_")
+        reply = ask(user_input.strip(), session_id)
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
     st.rerun()
