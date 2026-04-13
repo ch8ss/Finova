@@ -42,8 +42,10 @@ if "owner_name" not in st.session_state:
         <div class="gate-sub">Please sign in to access your CFO chat.</div>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("Go to sign in", key="gate_btn"):
-        st.switch_page("app.py")
+    col = st.columns([1, 2, 1])[1]
+    with col:
+        if st.button("Go to sign in", key="gate_btn"):
+            st.switch_page("app.py")
     st.stop()
 
 owner_name = st.session_state.get("owner_name", "")
