@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_cookies_controller import CookieController
 
 st.set_page_config(
     page_title="Finova",
@@ -7,11 +6,9 @@ st.set_page_config(
     layout="centered"
 )
 
-cookies = CookieController()
-
-# Auto-login if cookie exists
+# Auto-login if uid is in URL params
 if "owner_name" not in st.session_state:
-    uid = cookies.get("finova_uid")
+    uid = st.query_params.get("uid")
     if uid:
         from core.session import restore_session
         if restore_session(uid):
@@ -218,13 +215,13 @@ with tab_in:
             if err:
                 st.error(err)
             else:
-                cookies.set("finova_uid", user_id)
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
                 st.session_state["business_type"] = profile["business_type"]
                 st.session_state["messages"]      = load_messages(user_id)
                 st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
+                st.query_params["uid"] = user_id
                 st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please enter your email and password.")
@@ -248,13 +245,13 @@ with tab_up:
             if err:
                 st.error(err)
             else:
-                cookies.set("finova_uid", user_id)
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
                 st.session_state["business_type"] = profile["business_type"]
                 st.session_state["messages"]      = []
                 st.session_state["total_queries"] = 0
+                st.query_params["uid"] = user_id
                 st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please fill in all fields.")
