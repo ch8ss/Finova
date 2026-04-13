@@ -64,8 +64,6 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "total_queries" not in st.session_state:
     st.session_state["total_queries"] = 0
-if "input_key" not in st.session_state:
-    st.session_state["input_key"] = 0
 
 st.markdown("""
 <style>
@@ -420,16 +418,16 @@ chat_html += '</div>'
 st.markdown(chat_html, unsafe_allow_html=True)
 
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
-c1, c2 = st.columns([5, 1])
-with c1:
-    user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed", key=f"chat_input_{st.session_state['input_key']}")
-with c2:
-    send = st.button("Send", key="send_btn")
+with st.form(key="chat_form", clear_on_submit=True):
+    c1, c2 = st.columns([5, 1])
+    with c1:
+        user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
+    with c2:
+        send = st.form_submit_button("Send")
 
 if send and user_input and user_input.strip():
     st.session_state["messages"].append({"role": "user", "content": user_input.strip()})
     st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
-    st.session_state["input_key"] += 1
 
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
