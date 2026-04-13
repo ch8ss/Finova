@@ -1,12 +1,12 @@
 import streamlit as st
-import extra_streamlit_components as stx
+from streamlit_cookies_controller import CookieController
 from core.auth import sign_out
 from core.session import restore_session
 
-cookie_manager = stx.CookieManager(key="dash_cookies")
+cookies = CookieController()
 
 if "owner_name" not in st.session_state:
-    uid = cookie_manager.get("finova_uid")
+    uid = cookies.get("finova_uid")
     if uid:
         restore_session(uid)
 
@@ -354,7 +354,7 @@ with st.sidebar:
 
     if st.button("Log out", key="logout"):
         sign_out()
-        cookie_manager.delete("finova_uid")
+        cookies.remove("finova_uid")
         for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")

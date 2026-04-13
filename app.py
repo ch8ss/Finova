@@ -1,6 +1,5 @@
 import streamlit as st
-import extra_streamlit_components as stx
-from datetime import datetime, timedelta
+from streamlit_cookies_controller import CookieController
 
 st.set_page_config(
     page_title="Finova",
@@ -8,11 +7,11 @@ st.set_page_config(
     layout="centered"
 )
 
-cookie_manager = stx.CookieManager(key="app_cookies")
+cookies = CookieController()
 
 # Auto-login if cookie exists
 if "owner_name" not in st.session_state:
-    uid = cookie_manager.get("finova_uid")
+    uid = cookies.get("finova_uid")
     if uid:
         from core.session import restore_session
         if restore_session(uid):
@@ -219,7 +218,7 @@ with tab_in:
             if err:
                 st.error(err)
             else:
-                cookie_manager.set("finova_uid", user_id, expires_at=datetime.now() + timedelta(days=30))
+                cookies.set("finova_uid", user_id)
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
@@ -249,7 +248,7 @@ with tab_up:
             if err:
                 st.error(err)
             else:
-                cookie_manager.set("finova_uid", user_id, expires_at=datetime.now() + timedelta(days=30))
+                cookies.set("finova_uid", user_id)
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
