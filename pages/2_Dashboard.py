@@ -270,29 +270,26 @@ body { background: #0a1a0e !important; }
 }
 .chat-history-box::-webkit-scrollbar { width: 3px; }
 .chat-history-box::-webkit-scrollbar-thumb { background: rgba(82,183,136,0.2); border-radius: 2px; }
-.hist-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 1.1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    transition: background 0.15s;
+.chat-history-box .stButton > button {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 0 !important;
+    text-align: left !important;
+    color: rgba(232,244,240,0.65) !important;
+    font-size: 0.83rem !important;
+    font-weight: 400 !important;
+    padding: 0.65rem 1.1rem !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    justify-content: flex-start !important;
 }
-.hist-item:last-child { border-bottom: none; }
-.hist-item:hover { background: rgba(82,183,136,0.05); }
-.hist-index {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(82,183,136,0.45);
-    min-width: 16px;
-    text-align: right;
-}
-.hist-text {
-    font-size: 0.83rem;
-    color: rgba(232,244,240,0.65);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.chat-history-box .stButton > button:hover {
+    background: rgba(82,183,136,0.06) !important;
+    color: rgba(232,244,240,0.9) !important;
+    border-color: rgba(255,255,255,0.04) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 
@@ -329,7 +326,9 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("CFO Chat", key="nav_chat"):
+    if st.button("New CFO Chat", key="nav_chat"):
+        st.session_state["messages"] = []
+        st.session_state["total_queries"] = 0
         st.switch_page("pages/1_Chat.py")
 
     st.markdown("""
@@ -377,18 +376,13 @@ with col_left:
         </div>
         """, unsafe_allow_html=True)
     else:
-        items_html = ""
+        st.markdown('<div class="chat-history-box">', unsafe_allow_html=True)
         for i, msg in enumerate(user_messages):
             text = msg["content"]
             truncated = text if len(text) <= 60 else text[:57] + "..."
-            items_html += f"""
-            <div class="hist-item">
-                <span class="hist-index">{i + 1}</span>
-                <span class="hist-text">{truncated}</span>
-            </div>"""
-        st.markdown(f'<div class="chat-history-box">{items_html}</div>', unsafe_allow_html=True)
-        if st.button("Continue in CFO Chat", key="goto_chat"):
-            st.switch_page("pages/1_Chat.py")
+            if st.button(f"{i + 1}   {truncated}", key=f"hist_{i}"):
+                st.switch_page("pages/1_Chat.py")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with col_right:
     st.markdown('<div class="section-label">What Finova Can Do</div>', unsafe_allow_html=True)
