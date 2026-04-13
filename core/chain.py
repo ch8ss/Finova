@@ -1,11 +1,12 @@
 from core.llm import get_llm
 from core.memory import get_memory
 from core.rag import load_document, get_vectorstore
+from core.database import save_message, save_document
 from langchain_core.messages import HumanMessage, SystemMessage
 import tempfile
 import os
 
-def process_uploaded_files(uploaded_files):
+def process_uploaded_files(uploaded_files, user_id: str = None):
     all_docs = []
     for f in uploaded_files:
         ext = f.name.split(".")[-1].lower()
@@ -15,13 +16,15 @@ def process_uploaded_files(uploaded_files):
         try:
             docs = load_document(tmp_path, ext)
             all_docs.extend(docs)
+            if user_id:
+                save_document(user_id, f.name, ext)
         finally:
             os.unlink(tmp_path)
 
     if all_docs:
         get_vectorstore(documents=all_docs)
 
-def ask(question: str, session_id: str):
+def ask(question: str, session_id: str, user_id: str = None):
     llm = get_llm()
     memory = get_memory(session_id)
 
@@ -64,5 +67,10 @@ def ask(question: str, session_id: str):
     # Save to memory
     memory.add_user_message(question)
     memory.add_ai_message(reply)
+
+    # Persist to database if user is logged in
+    if user_id:
+        save_message(user_id, "user", question)
+        save_message(user_id, "assistant", reply)
 
     return reply

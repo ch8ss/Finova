@@ -165,6 +165,10 @@ body { background: #0a1a0e !important; }
 </style>
 """, unsafe_allow_html=True)
 
+import streamlit as st
+from core.auth import sign_in, sign_up
+from core.database import load_messages
+
 st.markdown("""
 <div class="brand">
     <div class="brand-name">Finova</div>
@@ -172,28 +176,56 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="glass-card"><div class="section-title">Get started</div>', unsafe_allow_html=True)
+tab_in, tab_up = st.tabs(["Sign in", "Create account"])
 
-owner_name = st.text_input("Your name", placeholder="e.g. Priya Sharma", key="login_name")
-business_name = st.text_input("Business name", placeholder="e.g. Sharma Traders", key="login_biz")
-business_type = st.selectbox("Type of business", [
-    "Retail", "Restaurant / Cafe", "Manufacturing",
-    "Tech", "Healthcare", "E-commerce",
-    "Construction", "Education", "Freelance",
-    "Finance / Consulting", "Services", "Other"
-], key="login_type")
+with tab_in:
+    st.markdown('<div class="section-title">Welcome back</div>', unsafe_allow_html=True)
+    si_email    = st.text_input("Email", placeholder="you@example.com", key="si_email")
+    si_password = st.text_input("Password", type="password", placeholder="••••••••", key="si_pass")
+    if st.button("Sign in", key="si_btn"):
+        if si_email.strip() and si_password.strip():
+            with st.spinner("Signing in..."):
+                user_id, profile, err = sign_in(si_email.strip(), si_password.strip())
+            if err:
+                st.error(err)
+            else:
+                st.session_state["user_id"]       = user_id
+                st.session_state["owner_name"]    = profile["owner_name"]
+                st.session_state["business_name"] = profile["business_name"]
+                st.session_state["business_type"] = profile["business_type"]
+                st.session_state["messages"]      = load_messages(user_id)
+                st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
+                st.switch_page("pages/2_Dashboard.py")
+        else:
+            st.error("Please enter your email and password.")
 
-if st.button("Continue", key="enter_btn"):
-    if owner_name.strip() and business_name.strip():
-        st.session_state["owner_name"] = owner_name.strip()
-        st.session_state["business_name"] = business_name.strip()
-        st.session_state["business_type"] = business_type
-        st.session_state["messages"] = []
-        st.session_state["total_queries"] = 0
-        st.switch_page("pages/2_Dashboard.py")
-    else:
-        st.error("Please fill in your name and business name.")
-
-st.markdown('</div>', unsafe_allow_html=True)
+with tab_up:
+    st.markdown('<div class="section-title">Create your account</div>', unsafe_allow_html=True)
+    su_email    = st.text_input("Email", placeholder="you@example.com", key="su_email")
+    su_password = st.text_input("Password", type="password", placeholder="Min. 6 characters", key="su_pass")
+    su_name     = st.text_input("Your name", placeholder="e.g. Priya Sharma", key="su_name")
+    su_biz      = st.text_input("Business name", placeholder="e.g. Sharma Traders", key="su_biz")
+    su_type     = st.selectbox("Type of business", [
+        "Retail", "Restaurant / Cafe", "Manufacturing",
+        "Tech", "Healthcare", "E-commerce",
+        "Construction", "Education", "Freelance",
+        "Finance / Consulting", "Services", "Other"
+    ], key="su_type")
+    if st.button("Create account", key="su_btn"):
+        if su_email.strip() and su_password.strip() and su_name.strip() and su_biz.strip():
+            with st.spinner("Creating account..."):
+                user_id, profile, err = sign_up(su_email.strip(), su_password.strip(), su_name.strip(), su_biz.strip(), su_type)
+            if err:
+                st.error(err)
+            else:
+                st.session_state["user_id"]       = user_id
+                st.session_state["owner_name"]    = profile["owner_name"]
+                st.session_state["business_name"] = profile["business_name"]
+                st.session_state["business_type"] = profile["business_type"]
+                st.session_state["messages"]      = []
+                st.session_state["total_queries"] = 0
+                st.switch_page("pages/2_Dashboard.py")
+        else:
+            st.error("Please fill in all fields.")
 
 st.markdown('<div class="footer">Your data stays private.</div>', unsafe_allow_html=True)

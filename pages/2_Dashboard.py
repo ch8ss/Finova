@@ -1,4 +1,5 @@
 import streamlit as st
+from core.auth import sign_out
 
 st.set_page_config(page_title="Finova · Dashboard", layout="wide")
 
@@ -343,7 +344,8 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     if st.button("Log out", key="logout"):
-        for k in ["owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
+        sign_out()
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
 

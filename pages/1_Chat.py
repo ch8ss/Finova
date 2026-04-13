@@ -1,5 +1,6 @@
 import streamlit as st
 from core.chain import ask, process_uploaded_files
+from core.auth import sign_out
 
 st.set_page_config(page_title="Finova · Chat", layout="wide")
 
@@ -376,7 +377,8 @@ with st.sidebar:
         st.rerun()
 
     if st.button("Log out", key="logout"):
-        for k in ["owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
+        sign_out()
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
 
@@ -430,8 +432,9 @@ if send and user_input and user_input.strip():
     st.session_state["input_key"] += 1
 
     session_id = business_name.lower().replace(" ", "_")
+    user_id = st.session_state.get("user_id")
     with st.spinner("Thinking..."):
-        reply = ask(user_input.strip(), session_id)
+        reply = ask(user_input.strip(), session_id, user_id=user_id)
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
     st.rerun()

@@ -11,3 +11,4 @@ sentence-transformers<3.0
 langchain-huggingface
 langchain-text-splitters
 tiktoken
+supabase
