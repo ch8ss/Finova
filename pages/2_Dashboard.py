@@ -1,5 +1,4 @@
 import streamlit as st
-from core.chain import process_uploaded_files
 
 st.set_page_config(page_title="Finova · Dashboard", layout="wide")
 
@@ -259,14 +258,62 @@ body { background: #0a1a0e !important; }
     height: 16px !important;
 }
 
-.success-file {
-    background: rgba(82,183,136,0.08);
-    border: 1px solid rgba(82,183,136,0.2);
-    border-radius: 8px;
-    padding: 0.5rem 0.9rem;
-    margin-bottom: 0.4rem;
-    font-size: 0.8rem;
+.chat-history-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    min-height: 220px;
+    max-height: 380px;
+    overflow-y: auto;
+    margin-bottom: 0.75rem;
+}
+.chat-history-box::-webkit-scrollbar { width: 3px; }
+.chat-history-box::-webkit-scrollbar-thumb { background: rgba(82,183,136,0.2); border-radius: 2px; }
+.hist-row-user {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0.5rem 0;
+}
+.hist-bubble-user {
+    background: rgba(82,183,136,0.15);
+    border: 1px solid rgba(82,183,136,0.25);
+    color: #e8f4f0;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 12px 12px 3px 12px;
+    max-width: 75%;
+    line-height: 1.5;
+}
+.hist-row-ai {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin: 0.5rem 0;
+}
+.hist-avatar {
+    min-width: 28px;
+    height: 28px;
+    background: rgba(82,183,136,0.15);
+    border: 1px solid rgba(82,183,136,0.25);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    font-weight: 700;
     color: #52b788;
+    letter-spacing: 0.02em;
+}
+.hist-bubble-ai {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: rgba(232,244,240,0.75);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    padding: 0.55rem 0.9rem;
+    border-radius: 3px 12px 12px 12px;
+    max-width: 80%;
 }
 
 [data-testid="stExpander"] {
@@ -335,22 +382,35 @@ st.markdown(f"""
 col_left, col_right = st.columns([1.4, 1], gap="large")
 
 with col_left:
-    st.markdown('<div class="section-label">Upload Documents</div>', unsafe_allow_html=True)
-    uploaded = st.file_uploader(
-        "Upload",
-        type=["pdf", "csv", "xlsx"],
-        accept_multiple_files=True,
-        label_visibility="collapsed",
-        key="dash_upload"
-    )
-    if uploaded:
-        if st.session_state.get("uploaded_files") != uploaded:
-            st.session_state["uploaded_files"] = uploaded
-            with st.spinner("Processing files..."):
-                process_uploaded_files(uploaded)
-        for f in uploaded:
-            st.markdown(f'<div class="success-file">&#10003; {f.name}</div>', unsafe_allow_html=True)
-        st.markdown('<div style="font-size:0.78rem;color:rgba(82,183,136,0.7);margin-top:0.5rem;">Ready — head to CFO Chat to analyse.</div>', unsafe_allow_html=True)
+    messages = st.session_state.get("messages", [])
+    st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chat-history-box">', unsafe_allow_html=True)
+    if not messages:
+        st.markdown("""
+        <div style="text-align:center;padding:2.5rem 1rem;">
+            <div style="font-size:0.88rem;font-weight:600;color:rgba(232,244,240,0.3);margin-bottom:0.4rem;">No conversations yet</div>
+            <div style="font-size:0.78rem;color:rgba(232,244,240,0.18);">Head to CFO Chat to get started.</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Show last 6 messages (3 exchanges)
+        recent = messages[-6:] if len(messages) > 6 else messages
+        for msg in recent:
+            if msg["role"] == "user":
+                st.markdown(f"""
+                <div class="hist-row-user">
+                    <div class="hist-bubble-user">{msg['content']}</div>
+                </div>""", unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="hist-row-ai">
+                    <div class="hist-avatar">CFO</div>
+                    <div class="hist-bubble-ai">{msg['content']}</div>
+                </div>""", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    if messages:
+        if st.button("Continue in CFO Chat", key="goto_chat"):
+            st.switch_page("pages/1_Chat.py")
 
 with col_right:
     st.markdown('<div class="section-label">What Finova Can Do</div>', unsafe_allow_html=True)
