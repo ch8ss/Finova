@@ -1,10 +1,22 @@
 import streamlit as st
+import extra_streamlit_components as stx
+from datetime import datetime, timedelta
 
 st.set_page_config(
     page_title="Finova",
     page_icon=None,
     layout="centered"
 )
+
+cookie_manager = stx.CookieManager(key="app_cookies")
+
+# Auto-login if cookie exists
+if "owner_name" not in st.session_state:
+    uid = cookie_manager.get("finova_uid")
+    if uid:
+        from core.session import restore_session
+        if restore_session(uid):
+            st.switch_page("pages/2_Dashboard.py")
 
 st.markdown("""
 <style>
@@ -184,7 +196,6 @@ body { background: #0a1a0e !important; }
 </style>
 """, unsafe_allow_html=True)
 
-import streamlit as st
 from core.auth import sign_in, sign_up
 from core.database import load_messages
 
@@ -208,6 +219,7 @@ with tab_in:
             if err:
                 st.error(err)
             else:
+                cookie_manager.set("finova_uid", user_id, expires_at=datetime.now() + timedelta(days=30))
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
@@ -237,6 +249,7 @@ with tab_up:
             if err:
                 st.error(err)
             else:
+                cookie_manager.set("finova_uid", user_id, expires_at=datetime.now() + timedelta(days=30))
                 st.session_state["user_id"]       = user_id
                 st.session_state["owner_name"]    = profile["owner_name"]
                 st.session_state["business_name"] = profile["business_name"]
