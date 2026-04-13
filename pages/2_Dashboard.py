@@ -42,6 +42,7 @@ if "owner_name" not in st.session_state:
         <div class="gate-sub">Please sign in to access your dashboard.</div>
     </div>
     """, unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
     col = st.columns([1, 2, 1])[1]
     with col:
         if st.button("Go to sign in", key="gate_btn"):
