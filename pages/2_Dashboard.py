@@ -71,7 +71,7 @@ with st.sidebar:
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
     """, unsafe_allow_html=True)
 
-    if st.button(f"{t['toggle_icon']}  {t['toggle_label']}", key="theme_toggle"):
+    if st.button(t['toggle_label'], key="theme_toggle"):
         st.session_state["theme"] = "light" if mode == "dark" else "dark"
         st.rerun()
 

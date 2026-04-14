@@ -102,7 +102,7 @@ with st.sidebar:
     queries = st.session_state.get("total_queries", 0)
     st.markdown(f'<div style="font-size:0.75rem;color:{t["text_faint"]};margin-bottom:1rem;">Queries this session: {queries}</div>', unsafe_allow_html=True)
 
-    if st.button(f"{t['toggle_icon']}  {t['toggle_label']}", key="theme_toggle"):
+    if st.button(t['toggle_label'], key="theme_toggle"):
         st.session_state["theme"] = "light" if mode == "dark" else "dark"
         st.rerun()
 

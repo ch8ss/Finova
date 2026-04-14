@@ -16,7 +16,7 @@ DARK = {
     "sidebar_border": "rgba(255,255,255,0.06)",
     "divider": "rgba(255,255,255,0.05)",
     "glow": "radial-gradient(ellipse, rgba(82,183,136,0.1) 0%, transparent 70%)",
-    "toggle_icon": "☀️",
+    "toggle_icon": "",
     "toggle_label": "Light mode",
 }
 
@@ -38,7 +38,7 @@ LIGHT = {
     "sidebar_border": "rgba(45,106,79,0.1)",
     "divider": "rgba(45,106,79,0.1)",
     "glow": "radial-gradient(ellipse, rgba(45,106,79,0.08) 0%, transparent 70%)",
-    "toggle_icon": "🌙",
+    "toggle_icon": "",
     "toggle_label": "Dark mode",
 }
 
