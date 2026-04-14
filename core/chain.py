@@ -1,7 +1,7 @@
 from core.llm import get_llm
 from core.memory import get_memory
 from core.rag import load_document, store_documents, similarity_search
-from core.database import save_message, save_document
+from core.database import save_message
 from langchain_core.messages import HumanMessage, SystemMessage
 import tempfile
 import os
@@ -33,7 +33,6 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         try:
             docs = load_document(tmp_path, ext)
             all_docs.extend(docs)
-            save_document(user_id, f.name, ext)
         finally:
             os.unlink(tmp_path)
 
