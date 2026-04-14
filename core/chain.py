@@ -6,6 +6,21 @@ from langchain_core.messages import HumanMessage, SystemMessage
 import tempfile
 import os
 
+BUSINESS_CONTEXT = {
+    "Retail": "retail and inventory management. Focus on margins, stock turnover, seasonal trends, and shrinkage.",
+    "Restaurant / Cafe": "food & beverage operations. Focus on food cost percentage, labour cost, covers per day, and waste.",
+    "Manufacturing": "manufacturing. Focus on cost of goods, production efficiency, raw material costs, and overhead.",
+    "Tech": "technology businesses. Focus on MRR, churn, CAC, LTV, and burn rate.",
+    "Healthcare": "healthcare. Focus on billing cycles, patient revenue, insurance reimbursements, and overhead.",
+    "E-commerce": "e-commerce. Focus on AOV, return rates, CAC, fulfilment costs, and conversion.",
+    "Construction": "construction. Focus on project margins, material costs, labour, and cash flow timing.",
+    "Education": "education businesses. Focus on enrolment revenue, staff costs, and seasonal cash flow.",
+    "Freelance": "freelance/consulting. Focus on utilisation rate, project profitability, and income smoothing.",
+    "Finance / Consulting": "finance and consulting. Focus on retainer revenue, project margins, and client concentration risk.",
+    "Services": "service businesses. Focus on labour efficiency, billable hours, and recurring revenue.",
+    "Other": "small business. Focus on revenue, expenses, profit margins, and cash flow.",
+}
+
 def process_uploaded_files(uploaded_files, user_id: str = None):
     if not user_id:
         return
@@ -25,7 +40,7 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
     if all_docs:
         get_vectorstore(user_id, documents=all_docs)
 
-def ask(question: str, session_id: str, user_id: str = None):
+def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other"):
     llm = get_llm()
     memory = get_memory(session_id)
 
@@ -34,37 +49,44 @@ def ask(question: str, session_id: str, user_id: str = None):
     if user_id:
         try:
             vectorstore = get_vectorstore(user_id)
-            results = vectorstore.similarity_search(question, k=3)
+            results = vectorstore.similarity_search(question, k=6)
             if results:
                 context = "\n\n".join([r.page_content for r in results])
         except Exception:
             pass
 
-    # Build chat history string
+    # Build chat history string — last 16 messages (8 exchanges)
     history = ""
-    for msg in memory.messages[-10:]:  # last 10 messages for context
+    for msg in memory.messages[-16:]:
         role = "User" if msg.type == "human" else "CFO"
         history += f"{role}: {msg.content}\n"
 
-    # Build prompt
-    system_prompt = (
-        "You are Finova, an expert AI Chief Financial Officer for small businesses. "
-        "You ONLY answer based on financial data the user has uploaded. "
-        "If no data has been uploaded yet, tell the user clearly that you need them to upload a financial document first — do NOT invent, estimate, or assume any numbers. "
-        "When data is available, be concise, clear, and actionable. Use simple language — avoid jargon."
-    )
+    # Build dynamic system prompt
+    biz_context = BUSINESS_CONTEXT.get(business_type, BUSINESS_CONTEXT["Other"])
+    system_prompt = f"""You are Finova, an expert AI Chief Financial Officer specialising in {biz_context}
 
-    user_prompt = question
+Your rules:
+- ONLY use numbers and data from the uploaded financial documents. Never invent or estimate figures.
+- If no data has been uploaded, tell the user clearly and ask them to upload a file first.
+- Always structure your answers clearly:
+  1. The direct answer with the key number(s)
+  2. A brief explanation (1-2 sentences)
+  3. One actionable recommendation
+- Use plain English. Avoid jargon. Be direct and concise.
+- If asked about trends, compare periods explicitly (e.g. "March vs February").
+- Flag any concerning patterns proactively (e.g. rising costs, low margins)."""
+
     if context:
-        user_prompt = f"Based on the following uploaded financial data:\n\n{context}\n\nAnswer this question: {question}"
+        user_prompt = f"Financial data from uploaded documents:\n\n{context}\n\nQuestion: {question}"
     else:
         user_prompt = (
             f"The user asked: {question}\n\n"
             "No financial data has been uploaded yet. "
-            "Politely tell them to upload a file (PDF, CSV, or Excel) from the sidebar before you can answer."
+            "Politely tell them to upload a PDF, CSV, or Excel file from the sidebar so you can analyse it."
         )
+
     if history:
-        user_prompt = f"Previous conversation:\n{history}\n\n{user_prompt}"
+        user_prompt = f"Conversation so far:\n{history}\n\n{user_prompt}"
 
     response = llm.invoke([
         SystemMessage(content=system_prompt),
@@ -76,7 +98,7 @@ def ask(question: str, session_id: str, user_id: str = None):
     memory.add_user_message(question)
     memory.add_ai_message(reply)
 
-    # Persist to database if user is logged in
+    # Persist to database
     if user_id:
         save_message(user_id, "user", question)
         save_message(user_id, "assistant", reply)

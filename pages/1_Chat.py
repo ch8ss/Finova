@@ -448,7 +448,7 @@ if send and user_input and user_input.strip():
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
     with st.spinner("Thinking..."):
-        reply = ask(user_input.strip(), session_id, user_id=user_id)
+        reply = ask(user_input.strip(), session_id, user_id=user_id, business_type=business_type)
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
     st.rerun()
