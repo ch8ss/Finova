@@ -1,6 +1,6 @@
 from core.llm import get_llm
 from core.memory import get_memory
-from core.rag import load_document, get_vectorstore
+from core.rag import load_document, store_documents, similarity_search
 from core.database import save_message, save_document
 from langchain_core.messages import HumanMessage, SystemMessage
 import tempfile
@@ -38,20 +38,19 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
             os.unlink(tmp_path)
 
     if all_docs:
-        get_vectorstore(user_id, documents=all_docs)
+        store_documents(user_id, all_docs)
 
 def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other"):
     llm = get_llm()
     memory = get_memory(session_id)
 
-    # Retrieve relevant context from vectorstore
+    # Retrieve relevant context from Supabase
     context = ""
     if user_id:
         try:
-            vectorstore = get_vectorstore(user_id)
-            results = vectorstore.similarity_search(question, k=6)
-            if results:
-                context = "\n\n".join([r.page_content for r in results])
+            chunks = similarity_search(user_id, question, k=6)
+            if chunks:
+                context = "\n\n".join(chunks)
         except Exception:
             pass
 
