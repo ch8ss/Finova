@@ -6,6 +6,9 @@ st.set_page_config(
     layout="centered"
 )
 
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "dark"
+
 # Auto-login if uid is in URL params
 if "owner_name" not in st.session_state:
     uid = st.query_params.get("uid")
