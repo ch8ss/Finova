@@ -354,11 +354,16 @@ with st.sidebar:
         key="sidebar_upload"
     )
     if sidebar_upload:
-        if st.session_state.get("uploaded_files") != sidebar_upload:
-            st.session_state["uploaded_files"] = sidebar_upload
+        user_id = st.session_state.get("user_id")
+        uploaded_names = [f.name for f in sidebar_upload]
+        if st.session_state.get("uploaded_file_names") != uploaded_names and user_id:
+            st.session_state["uploaded_file_names"] = uploaded_names
             with st.spinner("Processing..."):
-                process_uploaded_files(sidebar_upload, user_id=st.session_state.get("user_id"))
-        files_html = "".join(f'<div style="font-size:0.75rem;color:#52b788;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">&#10003; {f.name}</div>' for f in sidebar_upload)
+                process_uploaded_files(sidebar_upload, user_id=user_id)
+        if st.session_state.get("uploaded_file_names") == uploaded_names and user_id:
+            files_html = "".join(f'<div style="font-size:0.75rem;color:#52b788;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">&#10003; {f.name} · ready</div>' for f in sidebar_upload)
+        else:
+            files_html = "".join(f'<div style="font-size:0.75rem;color:rgba(232,244,240,0.4);padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">{f.name}</div>' for f in sidebar_upload)
         st.markdown(f'<div style="margin-top:0.5rem;">{files_html}</div>', unsafe_allow_html=True)
 
     st.markdown("""
