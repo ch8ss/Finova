@@ -37,7 +37,10 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
             os.unlink(tmp_path)
 
     if all_docs:
-        store_documents(user_id, all_docs)
+        try:
+            store_documents(user_id, all_docs)
+        except Exception:
+            pass
 
 def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other"):
     llm = get_llm()
