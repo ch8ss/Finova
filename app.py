@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 
 st.set_page_config(
@@ -247,19 +248,28 @@ with tab_up:
         su_submitted = st.form_submit_button("Create account")
     if su_submitted:
         if su_email.strip() and su_password.strip() and su_name.strip() and su_biz.strip():
-            with st.spinner("Creating account..."):
-                user_id, profile, err = sign_up(su_email.strip(), su_password.strip(), su_name.strip(), su_biz.strip(), su_type)
-            if err:
-                st.error(err)
+            if not re.match(r'^[^@]+@[^@]+\.[^@]+$', su_email.strip()):
+                st.error("Please enter a valid email address.")
+            elif len(su_password.strip()) < 6:
+                st.error("Password must be at least 6 characters.")
+            elif len(su_name.strip()) > 100:
+                st.error("Name must be 100 characters or fewer.")
+            elif len(su_biz.strip()) > 100:
+                st.error("Business name must be 100 characters or fewer.")
             else:
-                st.session_state["user_id"]       = user_id
-                st.session_state["owner_name"]    = profile["owner_name"]
-                st.session_state["business_name"] = profile["business_name"]
-                st.session_state["business_type"] = profile["business_type"]
-                st.session_state["messages"]      = []
-                st.session_state["total_queries"] = 0
-                st.query_params["uid"] = user_id
-                st.switch_page("pages/2_Dashboard.py")
+                with st.spinner("Creating account..."):
+                    user_id, profile, err = sign_up(su_email.strip(), su_password.strip(), su_name.strip(), su_biz.strip(), su_type)
+                if err:
+                    st.error(err)
+                else:
+                    st.session_state["user_id"]       = user_id
+                    st.session_state["owner_name"]    = profile["owner_name"]
+                    st.session_state["business_name"] = profile["business_name"]
+                    st.session_state["business_type"] = profile["business_type"]
+                    st.session_state["messages"]      = []
+                    st.session_state["total_queries"] = 0
+                    st.query_params["uid"] = user_id
+                    st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please fill in all fields.")
 

@@ -1,3 +1,4 @@
+import html
 import streamlit as st
 from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
@@ -88,6 +89,10 @@ with st.sidebar:
         key="sidebar_upload"
     )
     if sidebar_upload:
+        oversized = [f.name for f in sidebar_upload if f.size > 15 * 1024 * 1024]
+        if oversized:
+            st.warning(f"File(s) too large (max 15MB): {', '.join(oversized)}")
+            sidebar_upload = [f for f in sidebar_upload if f.size <= 15 * 1024 * 1024]
         user_id = st.session_state.get("user_id")
         uploaded_names = [f.name for f in sidebar_upload]
         if st.session_state.get("uploaded_file_names") != uploaded_names and user_id:
@@ -157,7 +162,7 @@ else:
                 img_tag = f'<img src="data:{msg.get("image_mime","image/png")};base64,{msg["image_b64"]}" style="max-width:260px;max-height:180px;border-radius:8px;margin-bottom:6px;display:block;" />'
             chat_html += f"""
             <div class="msg-row-user">
-                <div class="msg-bubble-user">{img_tag}{msg['content']}</div>
+                <div class="msg-bubble-user">{img_tag}{html.escape(msg['content'])}</div>
             </div>"""
         else:
             chat_html += f"""
@@ -165,7 +170,7 @@ else:
                 <div class="msg-avatar">CFO</div>
                 <div class="msg-ai-inner">
                     <div class="msg-ai-name">Finova · {business_name}</div>
-                    <div class="msg-bubble-ai">{msg['content']}</div>
+                    <div class="msg-bubble-ai">{html.escape(msg['content'])}</div>
                 </div>
             </div>"""
 

@@ -1,13 +1,19 @@
+import logging
 from core.supabase_client import get_supabase
+
+logger = logging.getLogger(__name__)
 
 
 def save_message(user_id: str, role: str, content: str):
-    sb = get_supabase()
-    sb.table("Conversations").insert({
-        "user_id": user_id,
-        "role": role,
-        "content": content,
-    }).execute()
+    try:
+        sb = get_supabase()
+        sb.table("Conversations").insert({
+            "user_id": user_id,
+            "role": role,
+            "content": content,
+        }).execute()
+    except Exception as e:
+        logger.error(f"save_message failed: {e}")
 
 
 def load_messages(user_id: str):
@@ -26,5 +32,5 @@ def delete_messages(user_id: str):
     try:
         sb = get_supabase()
         sb.table("Conversations").delete().eq("user_id", user_id).execute()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"delete_messages failed: {e}")

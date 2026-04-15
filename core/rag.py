@@ -21,8 +21,12 @@ def load_document(file_path: str, file_type: str):
     elif file_type in ["xlsx", "xls"]:
         df = pd.read_excel(file_path)
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
-        df.to_csv(tmp.name, index=False)
-        loader = CSVLoader(tmp.name)
+        try:
+            df.to_csv(tmp.name, index=False)
+            loader = CSVLoader(tmp.name)
+            return loader.load()
+        finally:
+            os.unlink(tmp.name)
     else:
         raise ValueError(f"Unsupported file type: {file_type}")
     return loader.load()
