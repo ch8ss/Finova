@@ -88,6 +88,15 @@ col_left, col_right = st.columns([1.4, 1], gap="large")
 
 with col_left:
     messages = st.session_state.get("messages", [])
+    # If session state is empty, try loading from Supabase
+    if not messages:
+        from core.database import load_messages
+        user_id = st.session_state.get("user_id")
+        if user_id:
+            messages = load_messages(user_id)
+            if messages:
+                st.session_state["messages"] = messages
+
     st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
 
     user_messages = [m for m in messages if m["role"] == "user"]
