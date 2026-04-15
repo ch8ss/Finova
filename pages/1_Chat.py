@@ -64,7 +64,12 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("Use diff account", key="nav_switch"):
+    if st.button("New Chat", key="nav_new_chat"):
+        st.session_state["messages"] = []
+        st.session_state["total_queries"] = 0
+        st.session_state["pending_image_b64"] = None
+        st.rerun()
+    if st.button("Sign out", key="nav_switch"):
         sign_out()
         st.query_params.clear()
         for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files", "pending_image_b64"]:
