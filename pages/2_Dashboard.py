@@ -49,10 +49,14 @@ with st.sidebar:
     <div style="font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: {t['accent_muted']}; margin-bottom: 0.6rem;">Navigation</div>
     """, unsafe_allow_html=True)
 
-    if st.button("Dashboard", key="nav_dash"):
-        st.switch_page("pages/2_Dashboard.py")
     if st.button("AI CFO", key="nav_chat"):
         st.switch_page("pages/1_Chat.py")
+    if st.button("Use diff account", key="nav_switch"):
+        sign_out()
+        st.query_params.clear()
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
+            st.session_state.pop(k, None)
+        st.switch_page("app.py")
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
@@ -73,12 +77,6 @@ with st.sidebar:
         st.session_state["theme"] = "light" if mode == "dark" else "dark"
         st.rerun()
 
-    if st.button("Log out", key="logout"):
-        sign_out()
-        st.query_params.clear()
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
-            st.session_state.pop(k, None)
-        st.switch_page("app.py")
 
 # Main
 st.markdown(f"""

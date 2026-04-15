@@ -3,7 +3,6 @@ from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
-from streamlit_paste_button import paste_image_button
 from PIL import Image
 import base64
 import io
@@ -65,11 +64,12 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("New CFO Chat", key="nav_new_chat"):
-        st.session_state["messages"] = []
-        st.session_state["total_queries"] = 0
-        st.session_state["pending_image_b64"] = None
-        st.rerun()
+    if st.button("Use diff account", key="nav_switch"):
+        sign_out()
+        st.query_params.clear()
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files", "pending_image_b64"]:
+            st.session_state.pop(k, None)
+        st.switch_page("app.py")
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
@@ -117,12 +117,6 @@ with st.sidebar:
         st.session_state["theme"] = "light" if mode == "dark" else "dark"
         st.rerun()
 
-    if st.button("Log out", key="logout"):
-        sign_out()
-        st.query_params.clear()
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
-            st.session_state.pop(k, None)
-        st.switch_page("app.py")
 
 # Main
 title_col, btn_col = st.columns([5, 1])
@@ -173,32 +167,15 @@ else:
 chat_html += '</div>'
 st.markdown(chat_html, unsafe_allow_html=True)
 
-# ── Image attachment row (outside form) ────────────────────────────────
-img_col1, img_col2 = st.columns([1, 1])
-
-with img_col1:
-    # Reads clipboard directly on click — no separate Ctrl+V needed
-    paste_result = paste_image_button(
-        label="Paste image (copy first)",
-        key="paste_btn",
-        errors="ignore",
-    )
-    if paste_result.image_data is not None:
-        buf = io.BytesIO()
-        paste_result.image_data.save(buf, format="PNG")
-        st.session_state["pending_image_b64"] = base64.b64encode(buf.getvalue()).decode()
-        st.session_state["pending_image_mime"] = "image/png"
-        st.rerun()
-
-with img_col2:
-    img_upload = st.file_uploader(
-        "img", type=["png", "jpg", "jpeg", "webp", "gif"],
-        label_visibility="collapsed", key="img_uploader"
-    )
-    if img_upload is not None:
-        mime = f"image/{img_upload.name.split('.')[-1].lower().replace('jpg','jpeg')}"
-        st.session_state["pending_image_b64"] = base64.b64encode(img_upload.read()).decode()
-        st.session_state["pending_image_mime"] = mime
+# ── Image attachment (outside form) ────────────────────────────────────
+img_upload = st.file_uploader(
+    "Attach image", type=["png", "jpg", "jpeg", "webp"],
+    label_visibility="collapsed", key="img_uploader"
+)
+if img_upload is not None:
+    mime = f"image/{img_upload.name.split('.')[-1].lower().replace('jpg','jpeg')}"
+    st.session_state["pending_image_b64"] = base64.b64encode(img_upload.read()).decode()
+    st.session_state["pending_image_mime"] = mime
 
 # Show preview + clear button if an image is pending
 pending_b64 = st.session_state.get("pending_image_b64")
