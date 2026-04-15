@@ -3,6 +3,10 @@ from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
+from streamlit_paste_button import paste_image_button
+from PIL import Image
+import base64
+import io
 
 if "owner_name" not in st.session_state:
     uid = st.query_params.get("uid")
@@ -42,6 +46,10 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "total_queries" not in st.session_state:
     st.session_state["total_queries"] = 0
+if "pending_image_b64" not in st.session_state:
+    st.session_state["pending_image_b64"] = None
+if "pending_image_mime" not in st.session_state:
+    st.session_state["pending_image_mime"] = "image/png"
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
 
@@ -57,8 +65,11 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("CFO Chat", key="nav_chat"):
-        st.switch_page("pages/1_Chat.py")
+    if st.button("New CFO Chat", key="nav_new_chat"):
+        st.session_state["messages"] = []
+        st.session_state["total_queries"] = 0
+        st.session_state["pending_image_b64"] = None
+        st.rerun()
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
@@ -106,11 +117,6 @@ with st.sidebar:
         st.session_state["theme"] = "light" if mode == "dark" else "dark"
         st.rerun()
 
-    if st.button("Clear chat", key="clear"):
-        st.session_state["messages"] = []
-        st.session_state["total_queries"] = 0
-        st.rerun()
-
     if st.button("Log out", key="logout"):
         sign_out()
         st.query_params.clear()
@@ -119,10 +125,19 @@ with st.sidebar:
         st.switch_page("app.py")
 
 # Main
-st.markdown(f"""
-<div class="page-title">CFO Chat</div>
-<div class="page-sub">Ask anything about {business_name}'s finances in plain English.</div>
-""", unsafe_allow_html=True)
+title_col, btn_col = st.columns([5, 1])
+with title_col:
+    st.markdown(f"""
+    <div class="page-title">CFO Chat</div>
+    <div class="page-sub">Ask anything about {business_name}'s finances in plain English.</div>
+    """, unsafe_allow_html=True)
+with btn_col:
+    st.markdown("<div style='padding-top:1rem;'></div>", unsafe_allow_html=True)
+    if st.button("+ New Chat", key="main_new_chat"):
+        st.session_state["messages"] = []
+        st.session_state["total_queries"] = 0
+        st.session_state["pending_image_b64"] = None
+        st.rerun()
 
 st.markdown('<div class="section-label">Conversation</div>', unsafe_allow_html=True)
 
@@ -133,14 +148,17 @@ if not messages:
     chat_html += f"""
     <div class="empty-state">
         <div class="empty-title">Hello, {owner_name}.</div>
-        <div class="empty-hint">Upload your financial documents from the sidebar, then ask me anything about {business_name}.</div>
+        <div class="empty-hint">Upload your financial documents from the sidebar, then ask me anything about {business_name}. You can also attach or paste images.</div>
     </div>"""
 else:
     for msg in messages:
         if msg["role"] == "user":
+            img_tag = ""
+            if msg.get("image_b64"):
+                img_tag = f'<img src="data:{msg.get("image_mime","image/png")};base64,{msg["image_b64"]}" style="max-width:260px;max-height:180px;border-radius:8px;margin-bottom:6px;display:block;" />'
             chat_html += f"""
             <div class="msg-row-user">
-                <div class="msg-bubble-user">{msg['content']}</div>
+                <div class="msg-bubble-user">{img_tag}{msg['content']}</div>
             </div>"""
         else:
             chat_html += f"""
@@ -155,6 +173,50 @@ else:
 chat_html += '</div>'
 st.markdown(chat_html, unsafe_allow_html=True)
 
+# ── Image attachment row (outside form) ────────────────────────────────
+img_col1, img_col2 = st.columns([1, 1])
+
+with img_col1:
+    # Reads clipboard directly on click — no separate Ctrl+V needed
+    paste_result = paste_image_button(
+        label="Paste image (copy first)",
+        key="paste_btn",
+        errors="ignore",
+    )
+    if paste_result.image_data is not None:
+        buf = io.BytesIO()
+        paste_result.image_data.save(buf, format="PNG")
+        st.session_state["pending_image_b64"] = base64.b64encode(buf.getvalue()).decode()
+        st.session_state["pending_image_mime"] = "image/png"
+        st.rerun()
+
+with img_col2:
+    img_upload = st.file_uploader(
+        "img", type=["png", "jpg", "jpeg", "webp", "gif"],
+        label_visibility="collapsed", key="img_uploader"
+    )
+    if img_upload is not None:
+        mime = f"image/{img_upload.name.split('.')[-1].lower().replace('jpg','jpeg')}"
+        st.session_state["pending_image_b64"] = base64.b64encode(img_upload.read()).decode()
+        st.session_state["pending_image_mime"] = mime
+
+# Show preview + clear button if an image is pending
+pending_b64 = st.session_state.get("pending_image_b64")
+if pending_b64:
+    prev_col, clear_col = st.columns([6, 1])
+    with prev_col:
+        st.markdown(
+            f'<img src="data:{st.session_state["pending_image_mime"]};base64,{pending_b64}" '
+            f'style="max-height:90px;border-radius:8px;margin:4px 0;" />',
+            unsafe_allow_html=True,
+        )
+    with clear_col:
+        if st.button("✕", key="clear_img", help="Remove image"):
+            st.session_state["pending_image_b64"] = None
+            st.session_state["pending_image_mime"] = "image/png"
+            st.rerun()
+
+# ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
 with st.form(key="chat_form", clear_on_submit=True):
     c1, c2 = st.columns([5, 1])
@@ -163,14 +225,33 @@ with st.form(key="chat_form", clear_on_submit=True):
     with c2:
         send = st.form_submit_button("Send")
 
-if send and user_input and user_input.strip():
-    st.session_state["messages"].append({"role": "user", "content": user_input.strip()})
+if send and ((user_input and user_input.strip()) or st.session_state.get("pending_image_b64")):
+    question = user_input.strip() if user_input else "What can you see in this image?"
+    image_b64 = st.session_state.get("pending_image_b64")
+    image_mime = st.session_state.get("pending_image_mime", "image/png")
+
+    st.session_state["messages"].append({
+        "role": "user",
+        "content": question,
+        "image_b64": image_b64,
+        "image_mime": image_mime,
+    })
     st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
+
+    # Clear pending image before rerun
+    st.session_state["pending_image_b64"] = None
+    st.session_state["pending_image_mime"] = "image/png"
 
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
     with st.spinner("Thinking..."):
-        reply = ask(user_input.strip(), session_id, user_id=user_id, business_type=business_type)
+        reply = ask(
+            question, session_id,
+            user_id=user_id,
+            business_type=business_type,
+            image_b64=image_b64,
+            image_mime=image_mime,
+        )
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
     st.rerun()

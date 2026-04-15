@@ -33,7 +33,7 @@ def store_documents(user_id: str, documents: list):
     sb = get_supabase()
     embedder = get_embeddings()
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=120)
     chunks = splitter.split_documents(documents)
 
     # Delete existing embeddings for this user (fresh upload)

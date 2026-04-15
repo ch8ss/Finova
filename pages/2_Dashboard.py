@@ -51,9 +51,7 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("New CFO Chat", key="nav_chat"):
-        st.session_state["messages"] = []
-        st.session_state["total_queries"] = 0
+    if st.button("AI CFO", key="nav_chat"):
         st.switch_page("pages/1_Chat.py")
 
     st.markdown(f"""

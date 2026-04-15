@@ -255,10 +255,8 @@ section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px
     background: {t['card_bg']};
     border: 1px solid {t['card_border']};
     border-radius: 16px; padding: 1.75rem;
-    height: 460px; overflow-y: auto; margin-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
 }}
-.chat-window::-webkit-scrollbar {{ width: 3px; }}
-.chat-window::-webkit-scrollbar-thumb {{ background: {t['accent_border']}; border-radius: 2px; }}
 .msg-bubble-user {{
     background: {t['accent_bg']};
     border: 1px solid {t['accent_border']};

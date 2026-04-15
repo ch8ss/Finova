@@ -209,9 +209,11 @@ tab_in, tab_up = st.tabs(["Sign in", "Create account"])
 
 with tab_in:
     st.markdown('<div class="section-title">Welcome back</div>', unsafe_allow_html=True)
-    si_email    = st.text_input("Email", placeholder="you@example.com", key="si_email")
-    si_password = st.text_input("Password", type="password", placeholder="••••••••", key="si_pass")
-    if st.button("Sign in", key="si_btn"):
+    with st.form("signin_form"):
+        si_email    = st.text_input("Email", placeholder="you@example.com", key="si_email")
+        si_password = st.text_input("Password", type="password", placeholder="••••••••", key="si_pass")
+        si_submitted = st.form_submit_button("Sign in")
+    if si_submitted:
         if si_email.strip() and si_password.strip():
             with st.spinner("Signing in..."):
                 user_id, profile, err = sign_in(si_email.strip(), si_password.strip())
@@ -231,17 +233,19 @@ with tab_in:
 
 with tab_up:
     st.markdown('<div class="section-title">Create your account</div>', unsafe_allow_html=True)
-    su_email    = st.text_input("Email", placeholder="you@example.com", key="su_email")
-    su_password = st.text_input("Password", type="password", placeholder="Min. 6 characters", key="su_pass")
-    su_name     = st.text_input("Your name", placeholder="e.g. Priya Sharma", key="su_name")
-    su_biz      = st.text_input("Business name", placeholder="e.g. Sharma Traders", key="su_biz")
-    su_type     = st.selectbox("Type of business", [
-        "Retail", "Restaurant / Cafe", "Manufacturing",
-        "Tech", "Healthcare", "E-commerce",
-        "Construction", "Education", "Freelance",
-        "Finance / Consulting", "Services", "Other"
-    ], key="su_type")
-    if st.button("Create account", key="su_btn"):
+    with st.form("signup_form"):
+        su_email    = st.text_input("Email", placeholder="you@example.com", key="su_email")
+        su_password = st.text_input("Password", type="password", placeholder="Min. 6 characters", key="su_pass")
+        su_name     = st.text_input("Your name", placeholder="e.g. Priya Sharma", key="su_name")
+        su_biz      = st.text_input("Business name", placeholder="e.g. Sharma Traders", key="su_biz")
+        su_type     = st.selectbox("Type of business", [
+            "Retail", "Restaurant / Cafe", "Manufacturing",
+            "Tech", "Healthcare", "E-commerce",
+            "Construction", "Education", "Freelance",
+            "Finance / Consulting", "Services", "Other"
+        ], key="su_type")
+        su_submitted = st.form_submit_button("Create account")
+    if su_submitted:
         if su_email.strip() and su_password.strip() and su_name.strip() and su_biz.strip():
             with st.spinner("Creating account..."):
                 user_id, profile, err = sign_up(su_email.strip(), su_password.strip(), su_name.strip(), su_biz.strip(), su_type)
