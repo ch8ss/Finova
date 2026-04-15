@@ -51,7 +51,7 @@ with st.sidebar:
 
     if st.button("AI CFO", key="nav_chat"):
         st.switch_page("pages/1_Chat.py")
-    if st.button("Sign out", key="nav_switch"):
+    if st.button("Switch account", key="nav_switch"):
         sign_out()
         st.query_params.clear()
         for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:

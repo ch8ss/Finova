@@ -3,9 +3,6 @@ from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
-from PIL import Image
-import base64
-import io
 
 if "owner_name" not in st.session_state:
     uid = st.query_params.get("uid")
@@ -69,7 +66,7 @@ with st.sidebar:
         st.session_state["total_queries"] = 0
         st.session_state["pending_image_b64"] = None
         st.rerun()
-    if st.button("Sign out", key="nav_switch"):
+    if st.button("Switch account", key="nav_switch"):
         sign_out()
         st.query_params.clear()
         for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files", "pending_image_b64"]:
@@ -171,32 +168,6 @@ else:
 
 chat_html += '</div>'
 st.markdown(chat_html, unsafe_allow_html=True)
-
-# ── Image attachment (outside form) ────────────────────────────────────
-img_upload = st.file_uploader(
-    "Attach image", type=["png", "jpg", "jpeg", "webp"],
-    label_visibility="collapsed", key="img_uploader"
-)
-if img_upload is not None:
-    mime = f"image/{img_upload.name.split('.')[-1].lower().replace('jpg','jpeg')}"
-    st.session_state["pending_image_b64"] = base64.b64encode(img_upload.read()).decode()
-    st.session_state["pending_image_mime"] = mime
-
-# Show preview + clear button if an image is pending
-pending_b64 = st.session_state.get("pending_image_b64")
-if pending_b64:
-    prev_col, clear_col = st.columns([6, 1])
-    with prev_col:
-        st.markdown(
-            f'<img src="data:{st.session_state["pending_image_mime"]};base64,{pending_b64}" '
-            f'style="max-height:90px;border-radius:8px;margin:4px 0;" />',
-            unsafe_allow_html=True,
-        )
-    with clear_col:
-        if st.button("✕", key="clear_img", help="Remove image"):
-            st.session_state["pending_image_b64"] = None
-            st.session_state["pending_image_mime"] = "image/png"
-            st.rerun()
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
