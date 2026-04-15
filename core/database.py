@@ -2,15 +2,12 @@ from core.supabase_client import get_supabase
 
 
 def save_message(user_id: str, role: str, content: str):
-    try:
-        sb = get_supabase()
-        sb.table("Conversations").insert({
-            "user_id": user_id,
-            "role": role,
-            "content": content,
-        }).execute()
-    except Exception:
-        pass  # Don't crash the app if DB write fails
+    sb = get_supabase()
+    sb.table("Conversations").insert({
+        "user_id": user_id,
+        "role": role,
+        "content": content,
+    }).execute()
 
 
 def load_messages(user_id: str):
