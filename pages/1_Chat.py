@@ -61,11 +61,6 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("New Chat", key="nav_new_chat"):
-        st.session_state["messages"] = []
-        st.session_state["total_queries"] = 0
-        st.session_state["pending_image_b64"] = None
-        st.rerun()
     if st.button("Clear chat", key="nav_clear"):
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
