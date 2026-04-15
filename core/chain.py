@@ -102,13 +102,13 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         except Exception:
             pass
 
-def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", image_b64: str = None, image_mime: str = "image/png"):
+def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", image_b64: str = None, image_mime: str = "image/png", has_uploaded: bool = False):
     llm = get_vision_llm() if image_b64 else get_llm()
     memory = get_memory(session_id)
 
-    # Retrieve relevant context from Supabase — pull more chunks for richer analysis
+    # Only retrieve context if the user has explicitly uploaded files this session
     context = ""
-    if user_id:
+    if user_id and has_uploaded:
         try:
             chunks = similarity_search(user_id, question, k=10)
             if chunks:

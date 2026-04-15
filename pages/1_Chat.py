@@ -200,6 +200,7 @@ if send and ((user_input and user_input.strip()) or st.session_state.get("pendin
 
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
+    has_uploaded = bool(st.session_state.get("uploaded_file_names"))
     with st.spinner("Thinking..."):
         reply = ask(
             question, session_id,
@@ -207,6 +208,7 @@ if send and ((user_input and user_input.strip()) or st.session_state.get("pendin
             business_type=business_type,
             image_b64=image_b64,
             image_mime=image_mime,
+            has_uploaded=has_uploaded,
         )
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
