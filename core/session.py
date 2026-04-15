@@ -9,7 +9,7 @@ def restore_session(user_id: str) -> bool:
         sb = get_supabase()
         result = sb.table("Users").select("owner_name, business_name, business_type").eq("id", user_id).execute()
         if not result.data or len(result.data) == 0:
-            # Auth account exists but no profile row — clear uid and send back to login
+            # Profile genuinely doesn't exist — clear uid
             st.query_params.clear()
             return False
         profile = result.data[0]
@@ -22,5 +22,5 @@ def restore_session(user_id: str) -> bool:
             st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
         return True
     except Exception:
-        st.query_params.clear()
+        # Transient error — don't clear uid, let the next load retry
         return False
