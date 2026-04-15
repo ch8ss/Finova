@@ -66,6 +66,10 @@ with st.sidebar:
         st.session_state["total_queries"] = 0
         st.session_state["pending_image_b64"] = None
         st.rerun()
+    if st.button("Clear chat", key="nav_clear"):
+        st.session_state["messages"] = []
+        st.session_state["total_queries"] = 0
+        st.rerun()
     if st.button("Switch account", key="nav_switch"):
         sign_out()
         st.query_params.clear()
