@@ -25,10 +25,9 @@ def load_messages(user_id: str):
     return [{"role": r["role"], "content": r["content"]} for r in res.data]
 
 
-def save_document(user_id: str, filename: str, file_type: str):
-    sb = get_supabase()
-    sb.table("Documents").insert({
-        "user_id": user_id,
-        "filename": filename,
-        "file_type": file_type,
-    }).execute()
+def delete_messages(user_id: str):
+    try:
+        sb = get_supabase()
+        sb.table("Conversations").delete().eq("user_id", user_id).execute()
+    except Exception:
+        pass
