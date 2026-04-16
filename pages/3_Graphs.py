@@ -4,176 +4,93 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import io
+from core.auth import sign_out
+from core.session import restore_session
+from core.theme import inject_theme, get_theme
+
+if "owner_name" not in st.session_state:
+    uid = st.query_params.get("uid")
+    if uid:
+        restore_session(uid)
+
+if st.session_state.get("user_id"):
+    st.query_params["uid"] = st.session_state["user_id"]
 
 st.set_page_config(page_title="Finova · Graphs", layout="wide")
 
-owner_name = st.session_state.get("owner_name", "User")
-business_name = st.session_state.get("business_name", "My Business")
-business_type = st.session_state.get("business_type", "Business")
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "dark"
+mode = st.session_state["theme"]
+t = get_theme(mode)
 
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap');
+if "owner_name" not in st.session_state:
+    st.markdown(inject_theme(mode), unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="max-width:420px;margin:6rem auto;background:{t['card_bg']};border:1px solid {t['card_border']};border-radius:16px;padding:2.5rem 2rem;text-align:center;">
+        <div style="font-size:1.1rem;font-weight:600;color:{t['text']};margin-bottom:0.5rem;">Sign in required</div>
+        <div style="font-size:0.85rem;color:{t['text_muted']};margin-bottom:1.5rem;">Please sign in to access your graphs.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    col = st.columns([1, 2, 1])[1]
+    with col:
+        if st.button("Go to sign in", key="gate_btn"):
+            st.switch_page("app.py")
+    st.stop()
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+owner_name = st.session_state.get("owner_name", "")
+business_name = st.session_state.get("business_name", "")
+business_type = st.session_state.get("business_type", "")
 
-[data-testid="stAppViewContainer"] { background: #020608 !important; font-family: 'Syne', sans-serif !important; }
-[data-testid="stAppViewContainer"] > div {
-    background:
-        radial-gradient(ellipse 80% 50% at 10% 10%, rgba(0,255,170,0.08) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 90% 90%, rgba(0,180,255,0.07) 0%, transparent 55%),
-        #020608 !important;
-}
-[data-testid="stMain"] { background: transparent !important; }
-#MainMenu, footer, header, [data-testid="stToolbar"] { display: none !important; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: #00ffaa44; border-radius: 2px; }
-.main .block-container { padding: 2rem 2.5rem 4rem !important; max-width: 1400px !important; }
+st.markdown(inject_theme(mode), unsafe_allow_html=True)
 
-[data-testid="stSidebar"] {
-    background: rgba(1,8,7,0.98) !important;
-    border-right: 1px solid rgba(0,255,170,0.1) !important;
-}
-[data-testid="stSidebar"] * { color: #e8f4f0 !important; font-family: 'Syne', sans-serif !important; }
-[data-testid="stSidebar"] .stButton > button {
-    background: rgba(0,255,170,0.07) !important; color: #00ffaa !important;
-    border: 1px solid rgba(0,255,170,0.18) !important; border-radius: 10px !important;
-    font-weight: 600 !important; width: 100% !important; margin-bottom: 0.4rem !important;
-    padding: 0.55rem 1rem !important; font-size: 0.85rem !important;
-    transition: all 0.2s ease !important; text-align: left !important;
-}
-[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(0,255,170,0.14) !important;
-    transform: translateX(5px) !important; box-shadow: none !important;
-}
-
-.page-header { padding: 1.5rem 0 2rem; animation: fadein 0.7s ease both; }
-.page-title {
-    font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
-    background: linear-gradient(135deg, #fff 0%, #00ffaa 55%, #00c8ff 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.page-sub {
-    font-family: 'Instrument Serif', serif; font-style: italic;
-    font-size: 0.95rem; color: rgba(232,244,240,0.35); margin-top: 0.3rem;
-}
-
-.section-label {
-    font-family: 'DM Mono', monospace; font-size: 0.58rem;
-    letter-spacing: 0.22em; text-transform: uppercase;
-    color: rgba(0,255,170,0.45); margin-bottom: 0.9rem;
-    display: flex; align-items: center; gap: 0.6rem;
-}
-.section-label::after { content: ''; flex: 1; height: 1px; background: rgba(0,255,170,0.07); }
-
-.upload-area {
-    background: rgba(255,255,255,0.02); border: 1.5px dashed rgba(0,255,170,0.18);
-    border-radius: 20px; padding: 2rem; text-align: center;
-    transition: all 0.3s ease; margin-bottom: 1rem;
-}
-.upload-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; animation: float 3s ease-in-out infinite; }
-.upload-title { font-size: 1rem; font-weight: 700; color: #e8f4f0; margin-bottom: 0.3rem; }
-.upload-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: rgba(232,244,240,0.25); }
-
-.filter-bar {
-    background: rgba(255,255,255,0.02); border: 1px solid rgba(0,255,170,0.1);
-    border-radius: 16px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;
-    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
-    animation: fadein 0.8s ease 0.1s both;
-}
-
-.stButton > button {
-    background: linear-gradient(135deg, #00ffaa, #00c8ff) !important;
-    color: #020608 !important; font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important; border: none !important;
-    border-radius: 12px !important; padding: 0.7rem 1.2rem !important;
-    width: 100% !important; transition: all 0.25s ease !important;
-    box-shadow: 0 4px 15px rgba(0,255,170,0.15) !important;
-}
-.stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 28px rgba(0,255,170,0.3) !important; }
-
-[data-testid="stFileUploader"] * { color: #e8f4f0 !important; }
-[data-testid="stFileUploader"] section {
-    background: rgba(255,255,255,0.02) !important;
-    border: 1px dashed rgba(0,255,170,0.18) !important; border-radius: 12px !important;
-}
-
-.stSelectbox > div > div, .stMultiSelect > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(0,255,170,0.18) !important;
-    border-radius: 12px !important; color: #e8f4f0 !important;
-}
-.stSelectbox label, .stMultiSelect label {
-    color: rgba(232,244,240,0.5) !important; font-size: 0.8rem !important;
-    font-family: 'Syne', sans-serif !important; font-weight: 600 !important;
-}
-
-.insight-strip {
-    background: rgba(0,255,170,0.04); border: 1px solid rgba(0,255,170,0.12);
-    border-radius: 14px; padding: 1rem 1.4rem; margin-bottom: 1.5rem;
-    font-family: 'DM Mono', monospace; font-size: 0.75rem;
-    color: rgba(232,244,240,0.55); line-height: 1.6;
-}
-.insight-strip strong { color: #00ffaa; }
-
-@keyframes fadein { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-@keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
-</style>
-""", unsafe_allow_html=True)
-
-# Plotly dark theme
+# Plotly theme
 PLOT_LAYOUT = dict(
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(255,255,255,0.02)',
-    font=dict(family='Syne, sans-serif', color='rgba(232,244,240,0.7)', size=12),
-    xaxis=dict(gridcolor='rgba(0,255,170,0.06)', linecolor='rgba(0,255,170,0.1)', tickfont=dict(size=11)),
-    yaxis=dict(gridcolor='rgba(0,255,170,0.06)', linecolor='rgba(0,255,170,0.1)', tickfont=dict(size=11)),
+    font=dict(family='-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color='rgba(232,244,240,0.7)', size=12),
+    xaxis=dict(gridcolor='rgba(82,183,136,0.08)', linecolor='rgba(82,183,136,0.12)', tickfont=dict(size=11)),
+    yaxis=dict(gridcolor='rgba(82,183,136,0.08)', linecolor='rgba(82,183,136,0.12)', tickfont=dict(size=11)),
     margin=dict(l=20, r=20, t=40, b=20),
     legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='rgba(232,244,240,0.6)')),
 )
-COLORS = ['#00ffaa','#00c8ff','#ff6b9d','#ffd166','#a29bfe','#fd79a8']
+COLORS = ['#52b788','#74c69d','#b7e4c7','#40916c','#2d6a4f','#95d5b2']
 
-# ── Sidebar ──
+# Sidebar
 with st.sidebar:
     st.markdown(f"""
-    <div style="padding:0.75rem 0 1.5rem;">
-        <div style="font-size:1.6rem;font-weight:800;
-            background:linear-gradient(135deg,#00ffaa,#00c8ff);
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">💎 Finova</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.18em;
-            color:rgba(232,244,240,0.25);text-transform:uppercase;margin-top:0.25rem;">AI Chief Financial Officer</div>
+    <div style="padding: 1.25rem 0 1.75rem;">
+        <div style="font-size: 1.15rem; font-weight: 700; color: {t['text']}; letter-spacing: -0.02em;">Finova</div>
+        <div style="font-size: 0.75rem; color: {t['text_muted']}; margin-top: 0.2rem;">{business_name}</div>
     </div>
-    <div style="background:rgba(0,255,170,0.05);border:1px solid rgba(0,255,170,0.12);
-        border-radius:14px;padding:1rem;margin-bottom:1.2rem;">
-        <div style="font-size:0.95rem;font-weight:700;color:#e8f4f0;margin-bottom:0.1rem;">{business_name}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:rgba(232,244,240,0.3);">{owner_name}</div>
-    </div>
-    <div style="font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.18em;
-        text-transform:uppercase;color:rgba(0,255,170,0.35);margin-bottom:0.6rem;">Navigation</div>
+    <div style="font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: {t['accent_muted']}; margin-bottom: 0.6rem;">Navigation</div>
     """, unsafe_allow_html=True)
 
-    if st.button("Dashboard", key="nav_dash"): st.switch_page("pages/2_Dashboard.py")
-    if st.button("Graphs", key="nav_graphs"): st.switch_page("pages/3_Graphs.py")
-    if st.button("CFO Chat", key="nav_chat"): st.switch_page("pages/1_Chat.py")
-
-    st.markdown("<div style='margin:1.2rem 0;height:1px;background:rgba(0,255,170,0.07);'></div>", unsafe_allow_html=True)
-
-    if st.button("Logout", key="logout"):
-        for k in ["owner_name","business_name","business_type","messages","total_queries","uploaded_files"]:
+    if st.button("Dashboard", key="nav_dash"):
+        st.switch_page("pages/2_Dashboard.py")
+    if st.button("AI CFO", key="nav_chat"):
+        st.switch_page("pages/1_Chat.py")
+    if st.button("Switch account", key="nav_switch"):
+        sign_out()
+        st.query_params.clear()
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
 
-# ── Header ──
+    st.markdown(f"""
+    <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
+    """, unsafe_allow_html=True)
+
+    if st.button(t['toggle_label'], key="theme_toggle"):
+        st.session_state["theme"] = "light" if mode == "dark" else "dark"
+        st.rerun()
+
+# Header
 st.markdown(f"""
-<div class="page-header">
-    <div class="page-title">Financial Graphs</div>
-    <div class="page-sub">{business_name} · Visual Intelligence Dashboard</div>
-</div>
+<div class="page-title">Financial Graphs</div>
+<div class="page-sub">{business_name} · Visual data dashboard.</div>
 """, unsafe_allow_html=True)
 
-# ── Upload ──
+# Upload
 st.markdown('<div class="section-label">Upload Your Financial Data</div>', unsafe_allow_html=True)
 st.markdown("""
 <div class="upload-area">
@@ -191,6 +108,9 @@ uploaded = st.file_uploader(
 )
 
 if uploaded:
+    if uploaded.size > 15 * 1024 * 1024:
+        st.warning("File too large. Maximum size is 15MB.")
+        st.stop()
     try:
         if uploaded.name.endswith(".csv"):
             df = pd.read_csv(uploaded)
@@ -208,7 +128,7 @@ if uploaded:
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Filters ──
+        # Filters
         st.markdown('<div class="section-label">Filters & Time Period</div>', unsafe_allow_html=True)
 
         date_cols = [c for c in df.columns if any(x in c for x in ['date','time','month','year','week','quarter','period'])]
@@ -243,7 +163,7 @@ if uploaded:
 
         st.markdown("---")
 
-        # ── Auto-detect columns ──
+        # Auto-detect columns
         rev_col = next((c for c in num_cols if 'revenue' in c or 'sales' in c or 'income' in c), num_cols[0] if num_cols else None)
         exp_col = next((c for c in num_cols if 'expense' in c or 'cost' in c or 'spend' in c), num_cols[1] if len(num_cols)>1 else None)
         profit_col = next((c for c in num_cols if 'profit' in c or 'net' in c or 'margin' in c), num_cols[2] if len(num_cols)>2 else None)
@@ -258,7 +178,7 @@ if uploaded:
             fig.update_traces(marker_line_width=0)
             return fig
 
-        # ── GRAPH 1: Revenue Over Time ──
+        # GRAPH 1: Revenue Over Time
         if rev_col:
             st.markdown('<div class="section-label">Revenue Over Time</div>', unsafe_allow_html=True)
             if chart_type == "Bar":
@@ -272,7 +192,7 @@ if uploaded:
             fig1.update_traces(line=dict(width=2.5))
             st.plotly_chart(make_fig(fig1), use_container_width=True)
 
-        # ── GRAPH 2: Expenses Breakdown ──
+        # GRAPH 2: Expenses Breakdown
         if exp_col:
             st.markdown('<div class="section-label">Expenses Over Time</div>', unsafe_allow_html=True)
             col_g1, col_g2 = st.columns(2)
@@ -299,7 +219,7 @@ if uploaded:
                 else:
                     st.info("Add a 'category' column to your data to see a donut chart breakdown!")
 
-        # ── GRAPH 3: Profit & Loss ──
+        # GRAPH 3: Profit & Loss
         if rev_col and exp_col:
             st.markdown('<div class="section-label">Profit & Loss Analysis</div>', unsafe_allow_html=True)
             df["__pl__"] = df[rev_col] - df[exp_col]
@@ -317,7 +237,7 @@ if uploaded:
             fig3.update_layout(barmode='group', title="Revenue vs Expenses vs Profit")
             st.plotly_chart(make_fig(fig3), use_container_width=True)
 
-        # ── GRAPH 4: Cash Flow ──
+        # GRAPH 4: Cash Flow
         if cash_col:
             st.markdown('<div class="section-label">Cash Flow</div>', unsafe_allow_html=True)
             fig4 = px.area(df, x=x_axis, y=cash_col, title="Cash Flow Over Time",
@@ -332,7 +252,7 @@ if uploaded:
             fig4.update_traces(line=dict(width=2.5), fill='tozeroy', fillcolor='rgba(0,200,255,0.08)')
             st.plotly_chart(make_fig(fig4), use_container_width=True)
 
-        # ── GRAPH 5: Sales by Category ──
+        # GRAPH 5: Sales by Category
         if cat_col and rev_col:
             st.markdown('<div class="section-label">Sales by Category</div>', unsafe_allow_html=True)
             col_g3, col_g4 = st.columns(2)
@@ -353,7 +273,7 @@ if uploaded:
                 except:
                     pass
 
-        # ── GRAPH 6: All Metrics Together ──
+        # GRAPH 6: All Metrics Together
         if len(num_cols) >= 2:
             st.markdown('<div class="section-label">Full Financial Overview</div>', unsafe_allow_html=True)
             selected_metrics = st.multiselect(
@@ -370,7 +290,7 @@ if uploaded:
                 fig6.update_traces(line=dict(width=2))
                 st.plotly_chart(make_fig(fig6), use_container_width=True)
 
-        # ── Raw Data Table ──
+        # Raw Data Table
         st.markdown('<div class="section-label">Raw Data Preview</div>', unsafe_allow_html=True)
         st.dataframe(
             df.head(50).style.background_gradient(cmap='Greens', axis=0),
@@ -384,18 +304,12 @@ if uploaded:
 else:
     st.markdown("""
     <div style="text-align:center;padding:4rem 2rem;color:rgba(232,244,240,0.2);">
-        <div style="font-size:3rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite;">📊</div>
+        <div style="font-size:3rem;margin-bottom:1rem;">📊</div>
         <div style="font-size:1.1rem;font-weight:700;color:rgba(232,244,240,0.35);margin-bottom:0.5rem;">
             Upload your financial data to see graphs</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(232,244,240,0.18);line-height:1.7;">
+        <div style="font-size:0.72rem;color:rgba(232,244,240,0.18);line-height:1.7;">
             Your CSV should have columns like:<br>
             Date · Revenue · Expenses · Profit · Cash Flow · Category · Sales
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-st.markdown("""
-<div style="margin-top:3rem;text-align:center;font-family:'DM Mono',monospace;
-    font-size:0.52rem;letter-spacing:0.2em;color:rgba(232,244,240,0.07);">
-</div>
-""", unsafe_allow_html=True)

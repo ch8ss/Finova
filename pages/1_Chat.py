@@ -62,6 +62,8 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
+    if st.button("Graphs", key="nav_graphs"):
+        st.switch_page("pages/3_Graphs.py")
     if st.button("Clear chat", key="nav_clear"):
         from core.database import delete_messages
         user_id = st.session_state.get("user_id")
@@ -138,6 +140,10 @@ with title_col:
 with btn_col:
     st.markdown("<div style='padding-top:1rem;'></div>", unsafe_allow_html=True)
     if st.button("+ New Chat", key="main_new_chat"):
+        from core.database import delete_messages
+        user_id = st.session_state.get("user_id")
+        if user_id:
+            delete_messages(user_id)
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
         st.session_state["pending_image_b64"] = None
