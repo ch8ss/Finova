@@ -51,8 +51,6 @@ with st.sidebar:
 
     if st.button("AI CFO", key="nav_chat"):
         st.switch_page("pages/1_Chat.py")
-    if st.button("Graphs", key="nav_graphs"):
-        st.switch_page("pages/3_Graphs.py")
     if st.button("Switch account", key="nav_switch"):
         sign_out()
         st.query_params.clear()

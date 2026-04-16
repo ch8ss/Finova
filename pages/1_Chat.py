@@ -62,8 +62,6 @@ with st.sidebar:
 
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
-    if st.button("Graphs", key="nav_graphs"):
-        st.switch_page("pages/3_Graphs.py")
     if st.button("Clear chat", key="nav_clear"):
         from core.database import delete_messages
         user_id = st.session_state.get("user_id")
