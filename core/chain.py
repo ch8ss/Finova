@@ -1,4 +1,4 @@
-from core.llm import get_llm, get_vision_llm
+from core.llm import get_llm
 from core.memory import get_memory
 from core.rag import load_document, store_documents, similarity_search
 from core.database import save_message
@@ -102,8 +102,8 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         except Exception:
             pass
 
-def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", image_b64: str = None, image_mime: str = "image/png", has_uploaded: bool = False):
-    llm = get_vision_llm() if image_b64 else get_llm()
+def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", has_uploaded: bool = False):
+    llm = get_llm()
     memory = get_memory(session_id)
 
     # Only retrieve context if the user has explicitly uploaded files this session
@@ -180,13 +180,7 @@ Analyse the data above to answer the question. If you can compute a ratio or spo
     if history:
         user_prompt = f"## Conversation history\n{history}\n\n{user_prompt}"
 
-    if image_b64:
-        human_content = [
-            {"type": "text", "text": user_prompt},
-            {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{image_b64}"}},
-        ]
-    else:
-        human_content = user_prompt
+    human_content = user_prompt
 
     response = llm.invoke([
         SystemMessage(content=system_prompt),

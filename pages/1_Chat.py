@@ -118,10 +118,6 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "total_queries" not in st.session_state:
     st.session_state["total_queries"] = 0
-if "pending_image_b64" not in st.session_state:
-    st.session_state["pending_image_b64"] = None
-if "pending_image_mime" not in st.session_state:
-    st.session_state["pending_image_mime"] = "image/png"
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
 
@@ -219,7 +215,6 @@ with btn_col:
             delete_messages(user_id)
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
-        st.session_state["pending_image_b64"] = None
         st.rerun()
 
 st.markdown('<div class="section-label">Conversation</div>', unsafe_allow_html=True)
@@ -236,12 +231,9 @@ with st.container(border=True):
     else:
         for msg in messages:
             if msg["role"] == "user":
-                img_tag = ""
-                if msg.get("image_b64"):
-                    img_tag = f'<img src="data:{msg.get("image_mime","image/png")};base64,{msg["image_b64"]}" style="max-width:260px;max-height:180px;border-radius:8px;margin-bottom:6px;display:block;" />'
                 st.markdown(f"""
                 <div class="msg-row-user">
-                    <div class="msg-bubble-user">{img_tag}{html.escape(msg['content'])}</div>
+                    <div class="msg-bubble-user">{html.escape(msg['content'])}</div>
                 </div>""", unsafe_allow_html=True)
             else:
                 text, chart_data = parse_response(msg["content"])
@@ -265,22 +257,14 @@ with st.form(key="chat_form", clear_on_submit=True):
     with c2:
         send = st.form_submit_button("Send")
 
-if send and ((user_input and user_input.strip()) or st.session_state.get("pending_image_b64")):
-    question = user_input.strip() if user_input else "What can you see in this image?"
-    image_b64 = st.session_state.get("pending_image_b64")
-    image_mime = st.session_state.get("pending_image_mime", "image/png")
+if send and user_input and user_input.strip():
+    question = user_input.strip()
 
     st.session_state["messages"].append({
         "role": "user",
         "content": question,
-        "image_b64": image_b64,
-        "image_mime": image_mime,
     })
     st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
-
-    # Clear pending image before rerun
-    st.session_state["pending_image_b64"] = None
-    st.session_state["pending_image_mime"] = "image/png"
 
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
@@ -290,8 +274,6 @@ if send and ((user_input and user_input.strip()) or st.session_state.get("pendin
             question, session_id,
             user_id=user_id,
             business_type=business_type,
-            image_b64=image_b64,
-            image_mime=image_mime,
             has_uploaded=has_uploaded,
         )
 

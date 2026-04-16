@@ -11,7 +11,5 @@ langchain-huggingface
 langchain-text-splitters
 tiktoken
 supabase
-Pillow
-streamlit-paste-button
 plotly
 matplotlib

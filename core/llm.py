@@ -13,11 +13,3 @@ def get_llm():
         temperature=0.2,
     )
 
-@st.cache_resource(show_spinner=False)
-def get_vision_llm():
-    # llama-4-scout supports image input on Groq
-    return ChatGroq(
-        api_key=os.getenv("GROQ_API_KEY"),
-        model_name="meta-llama/llama-4-scout-17b-16e-instruct",
-        temperature=0.2,
-    )
