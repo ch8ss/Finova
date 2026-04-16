@@ -195,12 +195,8 @@ section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px
     background: {t['card_bg']} !important;
     border: 1px dashed {t['accent_border']} !important;
     border-radius: 12px !important;
-    padding: 1.1rem 1.2rem !important;
-    display: flex !important; align-items: center !important;
-    gap: 1rem !important; flex-wrap: wrap !important;
 }}
-[data-testid="stFileUploaderDropzone"] > div {{ flex: 1 !important; min-width: 0 !important; }}
-[data-testid="stFileUploaderDropzone"] p {{ color: {t['text_muted']} !important; font-size: 0.82rem !important; margin: 0 !important; }}
+[data-testid="stFileUploaderDropzone"] p {{ color: {t['text_muted']} !important; font-size: 0.82rem !important; }}
 [data-testid="stFileUploaderDropzone"] small,
 [data-testid="stFileUploaderDropzone"] span {{ color: {t['text_faint']} !important; font-size: 0.72rem !important; }}
 [data-testid="stFileUploaderDropzone"] button {{
@@ -209,9 +205,8 @@ section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px
     border: 1px solid {t['accent_border']} !important;
     border-radius: 8px !important;
     font-size: 0.82rem !important; font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important; white-space: nowrap !important;
+    padding: 0.45rem 1.1rem !important;
 }}
-[data-testid="stFileUploaderDropzone"] svg {{ color: {t['text_faint']} !important; width: 16px !important; height: 16px !important; }}
 
 [data-testid="stExpander"] {{
     background: {t['card_bg']} !important;
