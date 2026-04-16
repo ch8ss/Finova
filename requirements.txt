@@ -13,3 +13,4 @@ tiktoken
 supabase
 Pillow
 streamlit-paste-button
+plotly
