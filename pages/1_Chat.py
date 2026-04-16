@@ -1,9 +1,84 @@
 import html
+import json
+import re
 import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
+
+PLOT_COLORS = ['#52b788','#74c69d','#40916c','#b7e4c7','#2d6a4f','#95d5b2']
+PLOT_LAYOUT = dict(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(255,255,255,0.02)',
+    font=dict(family='-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', color='rgba(232,244,240,0.75)', size=12),
+    xaxis=dict(gridcolor='rgba(82,183,136,0.08)', linecolor='rgba(82,183,136,0.12)', tickfont=dict(size=11)),
+    yaxis=dict(gridcolor='rgba(82,183,136,0.08)', linecolor='rgba(82,183,136,0.12)', tickfont=dict(size=11)),
+    margin=dict(l=20, r=20, t=40, b=20),
+    legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='rgba(232,244,240,0.6)')),
+)
+
+def parse_response(content):
+    """Split LLM reply into (text, chart_data). chart_data is None if no chart block."""
+    match = re.search(r'```chart\s*\n(.*?)\n```', content, re.DOTALL)
+    if match:
+        try:
+            chart_data = json.loads(match.group(1))
+            text = (content[:match.start()] + content[match.end():]).strip()
+            return text, chart_data
+        except Exception:
+            pass
+    return content, None
+
+def render_chart(chart_data):
+    """Render a Plotly chart from the LLM's chart JSON block."""
+    try:
+        ctype  = chart_data.get("type", "bar")
+        title  = chart_data.get("title", "")
+        x      = chart_data.get("x", [])
+        y      = chart_data.get("y", [])
+        series = chart_data.get("series", [])
+        x_lbl  = chart_data.get("x_label", "")
+        y_lbl  = chart_data.get("y_label", "")
+
+        if ctype == "pie":
+            labels = chart_data.get("labels", x)
+            values = chart_data.get("values", y)
+            fig = go.Figure(go.Pie(
+                labels=labels, values=values,
+                marker=dict(colors=PLOT_COLORS),
+                hole=0.4, textposition='inside', textinfo='percent+label'
+            ))
+        elif series:
+            fig = go.Figure()
+            for i, s in enumerate(series):
+                c = PLOT_COLORS[i % len(PLOT_COLORS)]
+                if ctype == "bar":
+                    fig.add_trace(go.Bar(name=s["name"], x=x, y=s["values"], marker_color=c, opacity=0.85))
+                else:
+                    fig.add_trace(go.Scatter(name=s["name"], x=x, y=s["values"],
+                                             mode='lines+markers', line=dict(color=c, width=2.5)))
+            if ctype == "bar":
+                fig.update_layout(barmode='group')
+        else:
+            df_c = pd.DataFrame({"x": x, "y": y})
+            labels = {"x": x_lbl, "y": y_lbl}
+            if ctype == "line":
+                fig = px.line(df_c, x="x", y="y", color_discrete_sequence=PLOT_COLORS, labels=labels, markers=True)
+                fig.update_traces(line=dict(width=2.5))
+            elif ctype == "area":
+                fig = px.area(df_c, x="x", y="y", color_discrete_sequence=PLOT_COLORS, labels=labels)
+                fig.update_traces(line=dict(width=2.5), fillcolor='rgba(82,183,136,0.08)')
+            else:
+                fig = px.bar(df_c, x="x", y="y", color_discrete_sequence=PLOT_COLORS, labels=labels)
+
+        fig.update_layout(title=title, **PLOT_LAYOUT)
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception:
+        pass
 
 if "owner_name" not in st.session_state:
     uid = st.query_params.get("uid")
@@ -150,36 +225,36 @@ with btn_col:
 st.markdown('<div class="section-label">Conversation</div>', unsafe_allow_html=True)
 
 messages = st.session_state.get("messages", [])
-chat_html = '<div class="chat-window">'
 
-if not messages:
-    chat_html += f"""
-    <div class="empty-state">
-        <div class="empty-title">Hello, {owner_name}.</div>
-        <div class="empty-hint">Upload your financial documents from the sidebar, then ask me anything about {business_name}. You can also attach or paste images.</div>
-    </div>"""
-else:
-    for msg in messages:
-        if msg["role"] == "user":
-            img_tag = ""
-            if msg.get("image_b64"):
-                img_tag = f'<img src="data:{msg.get("image_mime","image/png")};base64,{msg["image_b64"]}" style="max-width:260px;max-height:180px;border-radius:8px;margin-bottom:6px;display:block;" />'
-            chat_html += f"""
-            <div class="msg-row-user">
-                <div class="msg-bubble-user">{img_tag}{html.escape(msg['content'])}</div>
-            </div>"""
-        else:
-            chat_html += f"""
-            <div class="msg-row-ai">
-                <div class="msg-avatar">CFO</div>
-                <div class="msg-ai-inner">
-                    <div class="msg-ai-name">Finova · {business_name}</div>
-                    <div class="msg-bubble-ai">{html.escape(msg['content'])}</div>
-                </div>
-            </div>"""
-
-chat_html += '</div>'
-st.markdown(chat_html, unsafe_allow_html=True)
+with st.container(border=True):
+    if not messages:
+        st.markdown(f"""
+        <div class="empty-state" style="padding:3rem 1rem;">
+            <div class="empty-title">Hello, {owner_name}.</div>
+            <div class="empty-hint">Upload your financial documents from the sidebar, then ask me anything about {business_name}.</div>
+        </div>""", unsafe_allow_html=True)
+    else:
+        for msg in messages:
+            if msg["role"] == "user":
+                img_tag = ""
+                if msg.get("image_b64"):
+                    img_tag = f'<img src="data:{msg.get("image_mime","image/png")};base64,{msg["image_b64"]}" style="max-width:260px;max-height:180px;border-radius:8px;margin-bottom:6px;display:block;" />'
+                st.markdown(f"""
+                <div class="msg-row-user">
+                    <div class="msg-bubble-user">{img_tag}{html.escape(msg['content'])}</div>
+                </div>""", unsafe_allow_html=True)
+            else:
+                text, chart_data = parse_response(msg["content"])
+                st.markdown(f"""
+                <div class="msg-row-ai">
+                    <div class="msg-avatar">CFO</div>
+                    <div class="msg-ai-inner">
+                        <div class="msg-ai-name">Finova · {business_name}</div>
+                        <div class="msg-bubble-ai">{html.escape(text)}</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+                if chart_data:
+                    render_chart(chart_data)
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)

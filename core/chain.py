@@ -138,15 +138,28 @@ Red flags to watch for: {biz['red_flags']}
 ## Rules — follow these exactly
 1. ONLY use numbers from the uploaded financial documents. Never invent, estimate, or hallucinate figures.
 2. If no data is uploaded, say so clearly and ask the user to upload a file from the sidebar.
-3. When data is available, always:
-   - Lead with the direct answer and the key number(s)
-   - Compare to a prior period if the data allows (e.g. "up 12% vs last month")
-   - Benchmark against the industry standard where relevant (e.g. "your gross margin is 38% — industry average is 40–60%")
-   - Give one specific, actionable recommendation
-4. Flag financial red flags proactively — don't wait to be asked.
-5. For trend questions, explicitly name the periods (e.g. "January → March").
-6. Keep answers concise. No padding. No jargon the owner won't know.
-7. If the data is ambiguous or incomplete, say what you can see and what's missing."""
+3. Keep text SHORT — maximum 3 sentences. Lead with the key number, add one line of context, add one recommendation.
+4. When data is available: compare to a prior period if possible, benchmark against industry standard if relevant, flag red flags proactively.
+5. No padding, no long explanations, no jargon.
+
+## Charts
+When your answer involves multiple data points (trends, comparisons, breakdowns), append a chart block after your text. Use this exact format:
+
+```chart
+{{"type": "line|bar|area|pie", "title": "...", "x": ["Jan", "Feb", "Mar"], "y": [1000, 2000, 1500], "x_label": "...", "y_label": "..."}}
+```
+
+For comparing two metrics (e.g. revenue vs expenses):
+```chart
+{{"type": "bar", "title": "...", "x": ["Jan", "Feb"], "series": [{{"name": "Revenue", "values": [1000, 2000]}}, {{"name": "Expenses", "values": [800, 1200]}}]}}
+```
+
+For pie/donut breakdowns:
+```chart
+{{"type": "pie", "title": "...", "labels": ["A", "B", "C"], "values": [30, 50, 20]}}
+```
+
+Only add a chart when it genuinely helps visualise the answer. Never add a chart for single-number answers."""
 
     if context:
         user_prompt = f"""## Financial data from uploaded documents
