@@ -115,9 +115,32 @@ if uploaded:
         if uploaded.name.endswith(".csv"):
             df = pd.read_csv(uploaded)
         else:
-            df = pd.read_excel(uploaded)
+            # Try to find the real header row — skip rows until we find one with mostly non-null values
+            raw = pd.read_excel(uploaded, header=None)
+            header_row = 0
+            for i, row in raw.iterrows():
+                non_null = row.notna().sum()
+                if non_null >= max(2, len(raw.columns) * 0.4):
+                    header_row = i
+                    break
+            df = pd.read_excel(uploaded, header=header_row)
 
-        df.columns = [c.strip().lower().replace(" ","_") for c in df.columns]
+        # Clean column names
+        df.columns = [
+            str(c).strip().lower().replace(" ", "_").replace("/", "_").replace("-", "_")
+            for c in df.columns
+        ]
+        # Drop fully unnamed columns (e.g. "unnamed:_0", "unnamed:_1")
+        df = df.loc[:, ~df.columns.str.match(r'^unnamed')]
+        # Drop rows where all values are null
+        df = df.dropna(how="all").reset_index(drop=True)
+        # Convert any obvious numeric columns stored as strings
+        for col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="ignore")
+
+        if df.empty or len(df.columns) < 2:
+            st.error("Couldn't read usable data from this file. Make sure it has clear column headers and at least 2 columns.")
+            st.stop()
 
         st.success(f"✓ {uploaded.name} loaded — {len(df)} rows, {len(df.columns)} columns")
 
