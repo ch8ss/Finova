@@ -1,5 +1,6 @@
 import re
 import streamlit as st
+from streamlit_cookies_controller import CookieController
 
 st.set_page_config(
     page_title="Finova",
@@ -10,9 +11,11 @@ st.set_page_config(
 if "theme" not in st.session_state:
     st.session_state["theme"] = "dark"
 
-# Auto-login if uid is in URL params
+cookie = CookieController()
+
+# Auto-login via cookie
 if "owner_name" not in st.session_state:
-    uid = st.query_params.get("uid")
+    uid = cookie.get("finova_uid")
     if uid:
         from core.session import restore_session
         if restore_session(uid):
@@ -227,7 +230,7 @@ with tab_in:
                 st.session_state["business_type"] = profile["business_type"]
                 st.session_state["messages"]      = load_messages(user_id)
                 st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
-                st.query_params["uid"] = user_id
+                cookie.set("finova_uid", user_id, max_age=604800)
                 st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please enter your email and password.")
@@ -268,7 +271,7 @@ with tab_up:
                     st.session_state["business_type"] = profile["business_type"]
                     st.session_state["messages"]      = []
                     st.session_state["total_queries"] = 0
-                    st.query_params["uid"] = user_id
+                    cookie.set("finova_uid", user_id, max_age=604800)
                     st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please fill in all fields.")

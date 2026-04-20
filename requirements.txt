@@ -13,3 +13,4 @@ tiktoken
 supabase
 plotly
 matplotlib
+streamlit-cookies-controller

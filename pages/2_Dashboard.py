@@ -1,15 +1,15 @@
 import streamlit as st
+from streamlit_cookies_controller import CookieController
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
 
+cookie = CookieController()
+
 if "owner_name" not in st.session_state:
-    uid = st.query_params.get("uid")
+    uid = cookie.get("finova_uid")
     if uid:
         restore_session(uid)
-
-if st.session_state.get("user_id"):
-    st.query_params["uid"] = st.session_state["user_id"]
 
 st.set_page_config(page_title="Finova · Dashboard", layout="wide")
 
@@ -53,7 +53,7 @@ with st.sidebar:
         st.switch_page("pages/1_Chat.py")
     if st.button("Switch account", key="nav_switch"):
         sign_out()
-        st.query_params.clear()
+        cookie.remove("finova_uid")
         for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
