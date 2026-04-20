@@ -77,7 +77,7 @@ body {{ background: {t['bg_solid']} !important; }}
 [data-testid="collapsedControl"] {{ display: none !important; }}
 section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px !important; }}
 [data-testid="stSidebarNav"] {{ display: none !important; }}
-.main .block-container {{ padding: 2rem 2.5rem 4rem !important; max-width: 1300px !important; position: relative; z-index: 1; }}
+.main .block-container {{ padding: 2rem 2.5rem 4rem !important; max-width: 1300px !important; }}
 
 [data-testid="stSidebar"] {{
     background: {t['sidebar_bg']} !important;
