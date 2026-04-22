@@ -17,6 +17,7 @@ if st.session_state.get("_signout_pending"):
     _clear_memory(_biz.lower().replace(" ", "_"))
     for _k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
         st.session_state.pop(_k, None)
+    st.session_state["_skip_autologin"] = True
     st.switch_page("app.py")
     st.stop()
 

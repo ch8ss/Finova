@@ -272,9 +272,10 @@ with tab_up:
 st.markdown('<div class="footer">Your data stays private.</div>', unsafe_allow_html=True)
 
 # Auto-login via cookie — placed AFTER forms so the component cannot interrupt
-# form rendering and trigger a transient "Missing Submit Button" warning.
+# form rendering. Skipped when the user just signed out (_skip_autologin flag).
 cookie = CookieController()
-if "owner_name" not in st.session_state:
+skip = st.session_state.pop("_skip_autologin", False)
+if not skip and "owner_name" not in st.session_state:
     uid = cookie.get("finova_uid")
     if uid:
         from core.session import restore_session
