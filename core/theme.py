@@ -106,25 +106,14 @@ body {{ background: {t['bg_solid']} !important; }}
 }}
 
 
-[data-testid="stAudioInput"],
 [data-testid="stAudioInput"] > div {{
-    width: 2.75rem !important;
     min-width: unset !important;
-    max-width: 2.75rem !important;
-    height: 2.75rem !important;
     padding: 0 !important;
     overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}}
-[data-testid="stAudioInput"] > div > *:not(:first-child) {{
-    display: none !important;
+    gap: 0 !important;
 }}
 [data-testid="stAudioInputWaveformContainer"],
-[data-testid="stAudioInputWaveform"],
-[class*="AudioInputWaveform"],
-[class*="AudioInputTimer"] {{
+[data-testid="stAudioInputWaveform"] {{
     display: none !important;
 }}
 [data-testid="stAudioInput"] button,
@@ -134,7 +123,17 @@ body {{ background: {t['bg_solid']} !important; }}
     min-width: unset !important;
     border-radius: 50% !important;
     padding: 0 !important;
+    background: {t['accent_bg']} !important;
+    border: 1px solid {t['accent_border']} !important;
+    color: {t['accent']} !important;
     flex-shrink: 0 !important;
+}}
+[data-testid="stAudioInput"] button svg,
+[data-testid="stAudioInputRecordButton"] svg {{
+    color: {t['accent']} !important;
+    fill: {t['accent']} !important;
+    width: 1.1rem !important;
+    height: 1.1rem !important;
 }}
 
 [data-testid="stPageLink"] {{
