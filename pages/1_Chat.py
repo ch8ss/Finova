@@ -89,8 +89,11 @@ def render_chart(chart_data):
 if st.session_state.get("_signout_pending"):
     del st.session_state["_signout_pending"]
     sign_out()
-    _c = CookieController()
-    _c.remove("finova_uid")
+    try:
+        _c = CookieController()
+        _c.remove("finova_uid")
+    except Exception:
+        pass
     _biz = st.session_state.get("business_name", "")
     clear_memory(_biz.lower().replace(" ", "_"))
     for _k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
