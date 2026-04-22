@@ -1,6 +1,7 @@
 import html
 import json
 import re
+import uuid
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
@@ -132,6 +133,8 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "total_queries" not in st.session_state:
     st.session_state["total_queries"] = 0
+if "conversation_id" not in st.session_state:
+    st.session_state["conversation_id"] = str(uuid.uuid4())
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
 
@@ -148,12 +151,14 @@ with st.sidebar:
     if st.button("Dashboard", key="nav_dash"):
         st.switch_page("pages/2_Dashboard.py")
     if st.button("Clear chat", key="nav_clear"):
-        from core.database import delete_messages
+        from core.database import delete_conversation
         user_id = st.session_state.get("user_id")
-        if user_id:
-            delete_messages(user_id)
+        cid = st.session_state.get("conversation_id")
+        if user_id and cid:
+            delete_conversation(user_id, cid)
         session_id = business_name.lower().replace(" ", "_")
         clear_memory(session_id)
+        st.session_state["conversation_id"] = str(uuid.uuid4())
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
         st.rerun()
@@ -222,12 +227,9 @@ with title_col:
 with btn_col:
     st.markdown("<div style='padding-top:1rem;'></div>", unsafe_allow_html=True)
     if st.button("+ New Chat", key="main_new_chat"):
-        from core.database import delete_messages
-        user_id = st.session_state.get("user_id")
-        if user_id:
-            delete_messages(user_id)
         session_id = business_name.lower().replace(" ", "_")
         clear_memory(session_id)
+        st.session_state["conversation_id"] = str(uuid.uuid4())
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
         st.rerun()
@@ -284,12 +286,14 @@ if send and user_input and user_input.strip():
     session_id = business_name.lower().replace(" ", "_")
     user_id = st.session_state.get("user_id")
     has_uploaded = bool(st.session_state.get("uploaded_file_names"))
+    conversation_id = st.session_state.get("conversation_id")
     with st.spinner("Thinking..."):
         reply = ask(
             question, session_id,
             user_id=user_id,
             business_type=business_type,
             has_uploaded=has_uploaded,
+            conversation_id=conversation_id,
         )
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})

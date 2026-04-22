@@ -99,22 +99,13 @@ st.markdown(f"""
 col_left, col_right = st.columns([1.4, 1], gap="large")
 
 with col_left:
-    messages = st.session_state.get("messages", [])
-    # If session state is empty, try loading from Supabase
-    if not messages:
-        from core.database import load_messages
-        user_id = st.session_state.get("user_id")
-        if user_id:
-            messages = load_messages(user_id)
-            if messages:
-                st.session_state["messages"] = messages
-                st.session_state["total_queries"] = len([m for m in messages if m["role"] == "user"])
+    from core.database import load_conversations, load_messages
+    user_id = st.session_state.get("user_id")
+    conversations = load_conversations(user_id) if user_id else []
 
     st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
 
-    user_messages = [m for m in messages if m["role"] == "user"]
-
-    if not user_messages:
+    if not conversations:
         st.markdown(f"""
         <div style="background:{t['card_bg']};border:1px solid {t['card_border']};border-radius:14px;text-align:center;padding:2.5rem 1rem;">
             <div style="font-size:0.88rem;font-weight:600;color:{t['text_muted']};margin-bottom:0.4rem;">No conversations yet</div>
@@ -123,10 +114,13 @@ with col_left:
         """, unsafe_allow_html=True)
     else:
         with st.container(border=True):
-            for i, msg in enumerate(user_messages):
-                text = msg["content"]
+            for i, convo in enumerate(conversations):
+                text = convo["first_message"]
                 truncated = text if len(text) <= 60 else text[:57] + "..."
-                if st.button(f"{i + 1}   {truncated}", key=f"hist_{i}"):
+                if st.button(f"{i + 1}   {truncated}", key=f"conv_{i}"):
+                    st.session_state["conversation_id"] = convo["id"]
+                    st.session_state["messages"] = load_messages(user_id, conversation_id=convo["id"])
+                    st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
                     st.switch_page("pages/1_Chat.py")
 
 with col_right:

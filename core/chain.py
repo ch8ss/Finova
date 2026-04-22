@@ -102,7 +102,7 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         except Exception:
             pass
 
-def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", has_uploaded: bool = False):
+def ask(question: str, session_id: str, user_id: str = None, business_type: str = "Other", has_uploaded: bool = False, conversation_id: str = None):
     llm = get_llm()
     memory = get_memory(session_id)
 
@@ -197,7 +197,7 @@ Analyse the data above to answer the question. If you can compute a ratio or spo
 
     # Persist to database
     if user_id:
-        save_message(user_id, "user", question)
-        save_message(user_id, "assistant", reply)
+        save_message(user_id, "user", question, conversation_id=conversation_id)
+        save_message(user_id, "assistant", reply, conversation_id=conversation_id)
 
     return reply
