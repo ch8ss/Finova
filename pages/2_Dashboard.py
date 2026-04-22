@@ -54,7 +54,7 @@ with st.sidebar:
     if st.button("Switch account", key="nav_switch"):
         sign_out()
         cookie.remove("finova_uid")
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
 
@@ -96,6 +96,7 @@ with col_left:
             messages = load_messages(user_id)
             if messages:
                 st.session_state["messages"] = messages
+                st.session_state["total_queries"] = len([m for m in messages if m["role"] == "user"])
 
     st.markdown('<div class="section-label">Recent Conversations</div>', unsafe_allow_html=True)
 

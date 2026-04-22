@@ -7,3 +7,6 @@ def get_memory(session_id: str) -> ChatMessageHistory:
     if session_id not in _store:
         _store[session_id] = ChatMessageHistory()
     return _store[session_id]
+
+def clear_memory(session_id: str) -> None:
+    _store.pop(session_id, None)

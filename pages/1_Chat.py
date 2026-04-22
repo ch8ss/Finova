@@ -10,6 +10,7 @@ from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
+from core.memory import clear_memory
 
 PLOT_COLORS = ['#52b788','#74c69d','#40916c','#b7e4c7','#2d6a4f','#95d5b2']
 PLOT_LAYOUT = dict(
@@ -138,13 +139,17 @@ with st.sidebar:
         user_id = st.session_state.get("user_id")
         if user_id:
             delete_messages(user_id)
+        session_id = business_name.lower().replace(" ", "_")
+        clear_memory(session_id)
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
         st.rerun()
     if st.button("Switch account", key="nav_switch"):
         sign_out()
         cookie.remove("finova_uid")
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_files"]:
+        session_id = business_name.lower().replace(" ", "_")
+        clear_memory(session_id)
+        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
             st.session_state.pop(k, None)
         st.switch_page("app.py")
 
@@ -213,6 +218,8 @@ with btn_col:
         user_id = st.session_state.get("user_id")
         if user_id:
             delete_messages(user_id)
+        session_id = business_name.lower().replace(" ", "_")
+        clear_memory(session_id)
         st.session_state["messages"] = []
         st.session_state["total_queries"] = 0
         st.rerun()
