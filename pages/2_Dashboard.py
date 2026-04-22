@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_cookies_controller import CookieController
 from core.auth import sign_out
 from core.session import restore_session
-from core.theme import inject_theme, get_theme, mobile_nav_html
+from core.theme import inject_theme, get_theme
 
 # Handle pending sign-out before anything else renders
 if st.session_state.get("_signout_pending"):
@@ -53,7 +53,6 @@ business_name = st.session_state.get("business_name", "")
 business_type = st.session_state.get("business_type", "")
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
-st.markdown(mobile_nav_html("dashboard"), unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
@@ -96,6 +95,8 @@ st.markdown(f"""
 <div class="page-title">{business_name}</div>
 <div class="page-sub">Welcome back, {owner_name}. {business_type} dashboard.</div>
 """, unsafe_allow_html=True)
+
+st.page_link("pages/1_Chat.py", label="💬  Open AI CFO Chat")
 
 col_left, col_right = st.columns([1.4, 1], gap="large")
 
