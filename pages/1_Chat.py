@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from streamlit_cookies_controller import CookieController
-from core.chain import ask, process_uploaded_files, process_url
+from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
@@ -193,25 +193,6 @@ with st.sidebar:
         else:
             files_html = "".join(f'<div style="font-size:0.75rem;color:{t["text_muted"]};padding:0.3rem 0;border-bottom:1px solid {t["divider"]};">{f.name}</div>' for f in sidebar_upload)
         st.markdown(f'<div style="margin-top:0.5rem;">{files_html}</div>', unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div style="margin: 1rem 0 0.5rem; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: {t['accent_muted']};">Or paste a link</div>
-    """, unsafe_allow_html=True)
-    url_input = st.text_input("data_url", placeholder="Google Sheets or CSV/Excel/PDF URL", label_visibility="collapsed", key="url_input")
-    if st.button("Load link", key="load_url"):
-        if url_input and url_input.strip():
-            user_id = st.session_state.get("user_id")
-            with st.spinner("Fetching data..."):
-                success = process_url(url_input.strip(), user_id=user_id)
-            if success:
-                existing = st.session_state.get("uploaded_file_names", [])
-                if url_input.strip() not in existing:
-                    st.session_state["uploaded_file_names"] = existing + [url_input.strip()]
-                st.success("Data loaded and ready.")
-            else:
-                st.error("Couldn't load data from that link. Make sure it's a public Google Sheets, CSV, or PDF URL.")
-        else:
-            st.warning("Paste a URL first.")
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>
