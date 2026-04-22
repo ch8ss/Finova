@@ -11,16 +11,6 @@ st.set_page_config(
 if "theme" not in st.session_state:
     st.session_state["theme"] = "dark"
 
-cookie = CookieController()
-
-# Auto-login via cookie
-if "owner_name" not in st.session_state:
-    uid = cookie.get("finova_uid")
-    if uid:
-        from core.session import restore_session
-        if restore_session(uid):
-            st.switch_page("pages/2_Dashboard.py")
-
 st.markdown("""
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -233,7 +223,7 @@ with tab_in:
                 st.session_state["business_type"] = profile["business_type"]
                 st.session_state["messages"]      = load_messages(user_id)
                 st.session_state["total_queries"] = len([m for m in st.session_state["messages"] if m["role"] == "user"])
-                cookie.set("finova_uid", user_id, max_age=604800)
+                CookieController().set("finova_uid", user_id, max_age=604800)
                 st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please enter your email and password.")
@@ -274,9 +264,19 @@ with tab_up:
                     st.session_state["business_type"] = profile["business_type"]
                     st.session_state["messages"]      = []
                     st.session_state["total_queries"] = 0
-                    cookie.set("finova_uid", user_id, max_age=604800)
+                    CookieController().set("finova_uid", user_id, max_age=604800)
                     st.switch_page("pages/2_Dashboard.py")
         else:
             st.error("Please fill in all fields.")
 
 st.markdown('<div class="footer">Your data stays private.</div>', unsafe_allow_html=True)
+
+# Auto-login via cookie — placed AFTER forms so the component cannot interrupt
+# form rendering and trigger a transient "Missing Submit Button" warning.
+cookie = CookieController()
+if "owner_name" not in st.session_state:
+    uid = cookie.get("finova_uid")
+    if uid:
+        from core.session import restore_session
+        if restore_session(uid):
+            st.switch_page("pages/2_Dashboard.py")
