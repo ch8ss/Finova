@@ -294,26 +294,18 @@ if last_ai:
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
-
-if "chat_input_key" not in st.session_state:
-    st.session_state["chat_input_key"] = 0
-
-_has_mic = hasattr(st, "audio_input")
-_cols = st.columns([5, 1, 1]) if _has_mic else st.columns([5, 1])
-with _cols[0]:
-    user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...",
-                               label_visibility="collapsed",
-                               key=f"chat_input_{st.session_state['chat_input_key']}")
-with _cols[1]:
-    send = st.button("Send", key="send_btn", use_container_width=True)
+with st.form(key="chat_form", clear_on_submit=True):
+    c1, c2 = st.columns([5, 1])
+    with c1:
+        user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
+    with c2:
+        send = st.form_submit_button("Send")
 
 audio = None
-if _has_mic:
-    with _cols[2]:
-        try:
-            audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
-        except AttributeError:
-            pass
+try:
+    audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
+except AttributeError:
+    pass
 
 # ── Handle mic transcription ─────────────────────────────────────────────
 if audio is not None:
@@ -359,5 +351,4 @@ if send and user_input and user_input.strip():
         )
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
-    st.session_state["chat_input_key"] += 1  # clears the text input
     st.rerun()
