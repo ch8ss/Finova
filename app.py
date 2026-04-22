@@ -189,6 +189,9 @@ body { background: #0a1a0e !important; }
 
 .stAlert { border-radius: 10px !important; }
 
+/* hide cookie controller component flash on init */
+[data-testid="stCustomComponentV1"] { display: none !important; }
+
 .footer {
     margin-top: 3rem;
     font-size: 0.72rem;
