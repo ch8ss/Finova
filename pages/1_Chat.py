@@ -12,7 +12,7 @@ from streamlit_cookies_controller import CookieController
 from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
-from core.theme import inject_theme, get_theme, mobile_nav_html
+from core.theme import inject_theme, get_theme
 from core.memory import clear_memory
 
 PLOT_COLORS = ['#52b788','#74c69d','#40916c','#b7e4c7','#2d6a4f','#95d5b2']
@@ -139,7 +139,6 @@ if "conversation_id" not in st.session_state:
     st.session_state["conversation_id"] = str(uuid.uuid4())
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
-st.markdown(mobile_nav_html("chat"), unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
@@ -274,7 +273,18 @@ if last_ai:
     last_text, _ = parse_response(last_ai["content"])
     safe_text = last_text.replace("'", " ").replace('"', " ").replace("\n", " ").replace("`", " ")
     components.html(f"""
-    <button onclick="window.speechSynthesis.cancel();window.speechSynthesis.speak(new SpeechSynthesisUtterance('{safe_text}'))"
+    <button onclick="(function(){{
+        window.speechSynthesis.cancel();
+        var u=new SpeechSynthesisUtterance('{safe_text}');
+        u.rate=0.93; u.pitch=1.05;
+        function go(){{
+            var voices=window.speechSynthesis.getVoices();
+            var want=['Google UK English Female','Samantha','Karen','Moira','Tessa','Fiona'];
+            for(var i=0;i<want.length;i++){{var v=voices.find(function(x){{return x.name===want[i];}});if(v){{u.voice=v;break;}}}}
+            window.speechSynthesis.speak(u);
+        }}
+        if(window.speechSynthesis.getVoices().length){{go();}}else{{window.speechSynthesis.onvoiceschanged=go;}}
+    }})()"
         style="background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.3);color:#52b788;
                padding:0.35rem 0.9rem;border-radius:8px;cursor:pointer;font-size:0.78rem;
                font-family:-apple-system,sans-serif;margin:0.25rem 0 0.5rem;">
@@ -284,38 +294,47 @@ if last_ai:
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
-with st.form(key="chat_form", clear_on_submit=True):
-    c1, c2 = st.columns([5, 1])
-    with c1:
-        user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
-    with c2:
-        send = st.form_submit_button("Send")
 
-# ── Mic input ────────────────────────────────────────────────────────────
-st.markdown(f'<div style="font-size:0.72rem;color:{t["text_faint"]};margin:0.4rem 0 0.3rem;">or speak</div>', unsafe_allow_html=True)
-try:
-    audio = st.audio_input("Speak your question", label_visibility="collapsed", key="mic_input")
-    if audio is not None:
-        audio_bytes = audio.read()
-        audio_hash = hashlib.md5(audio_bytes).hexdigest()
-        if st.session_state.get("_last_audio_hash") != audio_hash:
-            st.session_state["_last_audio_hash"] = audio_hash
-            from core.audio import transcribe_audio
-            with st.spinner("Transcribing..."):
-                question = transcribe_audio(audio_bytes)
-            if question and question.strip():
-                st.session_state["messages"].append({"role": "user", "content": question})
-                st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
-                session_id = business_name.lower().replace(" ", "_")
-                user_id = st.session_state.get("user_id")
-                with st.spinner("Thinking..."):
-                    reply = ask(question, session_id, user_id=user_id, business_type=business_type,
-                                has_uploaded=bool(st.session_state.get("uploaded_file_names")),
-                                conversation_id=st.session_state.get("conversation_id"))
-                st.session_state["messages"].append({"role": "assistant", "content": reply})
-                st.rerun()
-except AttributeError:
-    pass  # st.audio_input not available in this Streamlit version
+if "chat_input_key" not in st.session_state:
+    st.session_state["chat_input_key"] = 0
+
+_has_mic = hasattr(st, "audio_input")
+_cols = st.columns([5, 1, 1]) if _has_mic else st.columns([5, 1])
+with _cols[0]:
+    user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...",
+                               label_visibility="collapsed",
+                               key=f"chat_input_{st.session_state['chat_input_key']}")
+with _cols[1]:
+    send = st.button("Send", key="send_btn", use_container_width=True)
+
+audio = None
+if _has_mic:
+    with _cols[2]:
+        try:
+            audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
+        except AttributeError:
+            pass
+
+# ── Handle mic transcription ─────────────────────────────────────────────
+if audio is not None:
+    audio_bytes = audio.read()
+    audio_hash = hashlib.md5(audio_bytes).hexdigest()
+    if st.session_state.get("_last_audio_hash") != audio_hash:
+        st.session_state["_last_audio_hash"] = audio_hash
+        from core.audio import transcribe_audio
+        with st.spinner("Transcribing..."):
+            question = transcribe_audio(audio_bytes)
+        if question and question.strip():
+            st.session_state["messages"].append({"role": "user", "content": question})
+            st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
+            session_id = business_name.lower().replace(" ", "_")
+            user_id = st.session_state.get("user_id")
+            with st.spinner("Thinking..."):
+                reply = ask(question, session_id, user_id=user_id, business_type=business_type,
+                            has_uploaded=bool(st.session_state.get("uploaded_file_names")),
+                            conversation_id=st.session_state.get("conversation_id"))
+            st.session_state["messages"].append({"role": "assistant", "content": reply})
+            st.rerun()
 
 if send and user_input and user_input.strip():
     question = user_input.strip()
@@ -340,4 +359,5 @@ if send and user_input and user_input.strip():
         )
 
     st.session_state["messages"].append({"role": "assistant", "content": reply})
+    st.session_state["chat_input_key"] += 1  # clears the text input
     st.rerun()
