@@ -141,6 +141,23 @@ if "total_queries" not in st.session_state:
 if "conversation_id" not in st.session_state:
     st.session_state["conversation_id"] = str(uuid.uuid4())
 
+# Handle voice transcript passed via URL param (mic fallback path)
+_voice = st.query_params.get("_voice", "")
+if _voice:
+    st.query_params.clear()
+    _q = _voice.strip()
+    if _q:
+        st.session_state["messages"].append({"role": "user", "content": _q})
+        st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
+        _uid = st.session_state.get("user_id")
+        _sid = business_name.lower().replace(" ", "_")
+        with st.spinner("Thinking..."):
+            _reply = ask(_q, _sid, user_id=_uid, business_type=business_type,
+                         has_uploaded=bool(st.session_state.get("uploaded_file_names")),
+                         conversation_id=st.session_state.get("conversation_id"))
+        st.session_state["messages"].append({"role": "assistant", "content": _reply})
+        st.rerun()
+
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
 
 # Sidebar
@@ -342,18 +359,28 @@ else{{
   r.onresult=function(e){{
     var txt=e.results[0][0].transcript;
     reset();
-    var ins=window.parent.document.querySelectorAll('input[type="text"]');
-    for(var i=0;i<ins.length;i++){{
-      if(ins[i].placeholder&&ins[i].placeholder.toLowerCase().indexOf('ask')>-1){{
-        var sv=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;
-        sv.call(ins[i],txt);
-        ins[i].dispatchEvent(new Event('input',{{bubbles:true}}));
-        setTimeout(function(){{
-          var sb=window.parent.document.querySelectorAll('[data-testid="stFormSubmitButton"] button');
-          if(sb.length)sb[0].click();
-        }},120);
-        break;
+    var sent=false;
+    try{{
+      var ins=window.parent.document.querySelectorAll('input[type="text"]');
+      for(var i=0;i<ins.length;i++){{
+        if(ins[i].placeholder&&ins[i].placeholder.toLowerCase().indexOf('ask')>-1){{
+          var sv=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;
+          sv.call(ins[i],txt);
+          ins[i].dispatchEvent(new Event('input',{{bubbles:true}}));
+          setTimeout(function(){{
+            try{{
+              var sb=window.parent.document.querySelectorAll('[data-testid="stFormSubmitButton"] button');
+              if(sb.length)sb[0].click();
+            }}catch(e2){{}}
+          }},120);
+          sent=true;break;
+        }}
       }}
+    }}catch(err){{}}
+    if(!sent){{
+      var p='/Chat';
+      try{{p=window.parent.location.pathname;}}catch(e3){{}}
+      window.parent.location.replace(p+'?_voice='+encodeURIComponent(txt));
     }}
   }};
   r.onend=reset;r.onerror=reset;
