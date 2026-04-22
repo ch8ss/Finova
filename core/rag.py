@@ -61,6 +61,39 @@ def store_documents(user_id: str, documents: list):
         sb.table("embeddings").insert(rows[i:i+50]).execute()
 
 
+def load_from_url(url: str) -> list:
+    """Download a CSV/XLSX/PDF URL (or Google Sheets share link) and return documents."""
+    import re
+    import requests
+
+    url = url.strip()
+
+    # Convert Google Sheets share URL → CSV export URL
+    sheets_match = re.search(r'docs\.google\.com/spreadsheets/d/([a-zA-Z0-9-_]+)', url)
+    if sheets_match:
+        sheet_id = sheets_match.group(1)
+        gid_match = re.search(r'gid=(\d+)', url)
+        gid = gid_match.group(1) if gid_match else '0'
+        url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+        ext = "csv"
+    else:
+        ext = url.split("?")[0].split(".")[-1].lower()
+        if ext not in ["csv", "xlsx", "xls", "pdf"]:
+            ext = "csv"
+
+    response = requests.get(url, timeout=20)
+    response.raise_for_status()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
+        tmp.write(response.content)
+        tmp_path = tmp.name
+
+    try:
+        return load_document(tmp_path, ext)
+    finally:
+        os.unlink(tmp_path)
+
+
 def has_embeddings(user_id: str) -> bool:
     """Return True if this user has any stored embeddings."""
     try:

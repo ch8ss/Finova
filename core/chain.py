@@ -81,6 +81,20 @@ BUSINESS_CONTEXT = {
     },
 }
 
+def process_url(url: str, user_id: str = None) -> bool:
+    if not user_id or not url.strip():
+        return False
+    try:
+        from core.rag import load_from_url
+        docs = load_from_url(url.strip())
+        if docs:
+            store_documents(user_id, docs)
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def process_uploaded_files(uploaded_files, user_id: str = None):
     if not user_id:
         return
