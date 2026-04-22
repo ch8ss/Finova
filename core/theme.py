@@ -106,46 +106,6 @@ body {{ background: {t['bg_solid']} !important; }}
 }}
 
 
-[data-testid="stAudioInput"] > div {{
-    min-width: unset !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    gap: 0 !important;
-    width: 3rem !important;
-}}
-[data-testid="stAudioInputWaveformContainer"],
-[data-testid="stAudioInputWaveform"],
-[data-testid="stAudioInput"] audio,
-[data-testid="stAudioInputPlayback"],
-[data-testid="stAudioInput"] > div > *:not(:first-child) {{
-    display: none !important;
-}}
-[data-testid="stAudioInput"] button,
-[data-testid="stAudioInputRecordButton"] {{
-    width: 3rem !important;
-    height: 3rem !important;
-    min-width: unset !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    background: {t['accent_bg']} !important;
-    border: 1px solid {t['accent_border']} !important;
-    color: {t['accent']} !important;
-    flex-shrink: 0 !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important;
-    transition: background 0.2s, border-color 0.2s !important;
-}}
-[data-testid="stAudioInput"] button:hover,
-[data-testid="stAudioInputRecordButton"]:hover {{
-    background: {t['accent_border']} !important;
-    border-color: {t['accent']} !important;
-}}
-[data-testid="stAudioInput"] button svg,
-[data-testid="stAudioInputRecordButton"] svg {{
-    color: {t['accent']} !important;
-    fill: {t['accent']} !important;
-    width: 1.15rem !important;
-    height: 1.15rem !important;
-}}
 
 [data-testid="stPageLink"] {{
     margin-bottom: 1.25rem;

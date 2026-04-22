@@ -1,4 +1,3 @@
-import hashlib
 import html
 import json
 import re
@@ -299,12 +298,16 @@ if last_ai:
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
 mic_col, form_col = st.columns([1, 13])
-audio = None
 with mic_col:
     try:
-        audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
-    except AttributeError:
-        pass
+        from streamlit_mic_recorder import mic_recorder
+        audio_result = mic_recorder(
+            start_prompt="", stop_prompt="",
+            just_once=True, use_container_width=False,
+            key="mic"
+        )
+    except Exception:
+        audio_result = None
 with form_col:
     with st.form(key="chat_form", clear_on_submit=True):
         c1, c2 = st.columns([7, 1])
@@ -314,27 +317,23 @@ with form_col:
             send = st.form_submit_button("Send")
 
 # ── Handle mic transcription ─────────────────────────────────────────────
-if audio is not None:
-    audio_bytes = audio.read()
-    audio_hash = hashlib.md5(audio_bytes).hexdigest()
-    if st.session_state.get("_last_audio_hash") != audio_hash:
-        st.session_state["_last_audio_hash"] = audio_hash
-        from core.audio import transcribe_audio
-        with st.spinner("Transcribing..."):
-            question = transcribe_audio(audio_bytes)
-        if question and question.strip():
-            st.session_state["messages"].append({"role": "user", "content": question})
-            st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
-            session_id = business_name.lower().replace(" ", "_")
-            user_id = st.session_state.get("user_id")
-            with st.spinner("Thinking..."):
-                reply = ask(question, session_id, user_id=user_id, business_type=business_type,
-                            has_uploaded=bool(st.session_state.get("uploaded_file_names")),
-                            conversation_id=st.session_state.get("conversation_id"))
-            st.session_state["messages"].append({"role": "assistant", "content": reply})
-            st.rerun()
-        else:
-            st.toast("Couldn't pick up audio — try again or type your question.", icon="🎙️")
+if audio_result:
+    from core.audio import transcribe_audio
+    with st.spinner("Transcribing..."):
+        question = transcribe_audio(audio_result["bytes"])
+    if question and question.strip():
+        st.session_state["messages"].append({"role": "user", "content": question})
+        st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
+        session_id = business_name.lower().replace(" ", "_")
+        user_id = st.session_state.get("user_id")
+        with st.spinner("Thinking..."):
+            reply = ask(question, session_id, user_id=user_id, business_type=business_type,
+                        has_uploaded=bool(st.session_state.get("uploaded_file_names")),
+                        conversation_id=st.session_state.get("conversation_id"))
+        st.session_state["messages"].append({"role": "assistant", "content": reply})
+        st.rerun()
+    else:
+        st.toast("Couldn't pick up audio — try again or type your question.", icon="🎙️")
 
 if send and user_input and user_input.strip():
     question = user_input.strip()
