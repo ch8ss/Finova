@@ -16,16 +16,17 @@ def save_message(user_id: str, role: str, content: str):
         logger.error(f"save_message failed: {e}")
 
 
-def load_messages(user_id: str):
+def load_messages(user_id: str, limit: int = 100):
     sb = get_supabase()
     res = (
         sb.table("Conversations")
         .select("role, content")
         .eq("user_id", user_id)
-        .order("created_at")
+        .order("created_at", desc=True)
+        .limit(limit)
         .execute()
     )
-    return [{"role": r["role"], "content": r["content"]} for r in res.data]
+    return [{"role": r["role"], "content": r["content"]} for r in reversed(res.data)]
 
 
 def delete_messages(user_id: str):

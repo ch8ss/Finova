@@ -4,9 +4,24 @@ from core.auth import sign_out
 from core.session import restore_session
 from core.theme import inject_theme, get_theme
 
-cookie = CookieController()
+# Handle pending sign-out before anything else renders
+if st.session_state.get("_signout_pending"):
+    del st.session_state["_signout_pending"]
+    from core.auth import sign_out as _sign_out
+    from core.memory import clear_memory as _clear_memory
+    _sign_out()
+    _c = CookieController()
+    _c.remove("finova_uid")
+    _biz = st.session_state.get("business_name", "")
+    _clear_memory(_biz.lower().replace(" ", "_"))
+    for _k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
+        st.session_state.pop(_k, None)
+    st.switch_page("app.py")
+    st.stop()
 
+# Only instantiate CookieController when the user isn't already in session
 if "owner_name" not in st.session_state:
+    cookie = CookieController()
     uid = cookie.get("finova_uid")
     if uid:
         restore_session(uid)
@@ -52,11 +67,8 @@ with st.sidebar:
     if st.button("AI CFO", key="nav_chat"):
         st.switch_page("pages/1_Chat.py")
     if st.button("Switch account", key="nav_switch"):
-        sign_out()
-        cookie.remove("finova_uid")
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
-            st.session_state.pop(k, None)
-        st.switch_page("app.py")
+        st.session_state["_signout_pending"] = True
+        st.rerun()
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>

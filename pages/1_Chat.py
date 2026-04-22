@@ -82,9 +82,22 @@ def render_chart(chart_data):
     except Exception:
         pass
 
-cookie = CookieController()
+# Handle pending sign-out before anything else renders
+if st.session_state.get("_signout_pending"):
+    del st.session_state["_signout_pending"]
+    sign_out()
+    _c = CookieController()
+    _c.remove("finova_uid")
+    _biz = st.session_state.get("business_name", "")
+    clear_memory(_biz.lower().replace(" ", "_"))
+    for _k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
+        st.session_state.pop(_k, None)
+    st.switch_page("app.py")
+    st.stop()
 
+# Only instantiate CookieController when the user isn't already in session
 if "owner_name" not in st.session_state:
+    cookie = CookieController()
     uid = cookie.get("finova_uid")
     if uid:
         restore_session(uid)
@@ -145,13 +158,8 @@ with st.sidebar:
         st.session_state["total_queries"] = 0
         st.rerun()
     if st.button("Switch account", key="nav_switch"):
-        sign_out()
-        cookie.remove("finova_uid")
-        session_id = business_name.lower().replace(" ", "_")
-        clear_memory(session_id)
-        for k in ["user_id", "owner_name", "business_name", "business_type", "messages", "total_queries", "uploaded_file_names"]:
-            st.session_state.pop(k, None)
-        st.switch_page("app.py")
+        st.session_state["_signout_pending"] = True
+        st.rerun()
 
     st.markdown(f"""
     <div style="margin: 1.5rem 0; height: 1px; background: {t['divider']};"></div>

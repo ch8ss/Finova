@@ -1,24 +1,26 @@
-from langchain_community.document_loaders import PyPDFLoader, CSVLoader, TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
 from core.supabase_client import get_supabase
 import streamlit as st
-import pandas as pd
 import tempfile
 import os
 
 @st.cache_resource(show_spinner=False)
 def get_embeddings():
+    from langchain_huggingface import HuggingFaceEmbeddings
     return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 def load_document(file_path: str, file_type: str):
     if file_type == "pdf":
+        from langchain_community.document_loaders import PyPDFLoader
         loader = PyPDFLoader(file_path)
     elif file_type == "csv":
+        from langchain_community.document_loaders import CSVLoader
         loader = CSVLoader(file_path)
     elif file_type == "txt":
+        from langchain_community.document_loaders import TextLoader
         loader = TextLoader(file_path)
     elif file_type in ["xlsx", "xls"]:
+        import pandas as pd
+        from langchain_community.document_loaders import CSVLoader
         df = pd.read_excel(file_path)
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
         try:
@@ -34,6 +36,7 @@ def load_document(file_path: str, file_type: str):
 
 def store_documents(user_id: str, documents: list):
     """Chunk documents and store embeddings in Supabase."""
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
     sb = get_supabase()
     embedder = get_embeddings()
 
@@ -56,6 +59,16 @@ def store_documents(user_id: str, documents: list):
     # Insert in batches of 50
     for i in range(0, len(rows), 50):
         sb.table("embeddings").insert(rows[i:i+50]).execute()
+
+
+def has_embeddings(user_id: str) -> bool:
+    """Return True if this user has any stored embeddings."""
+    try:
+        sb = get_supabase()
+        result = sb.table("embeddings").select("id").eq("user_id", user_id).limit(1).execute()
+        return bool(result.data)
+    except Exception:
+        return False
 
 
 def similarity_search(user_id: str, query: str, k: int = 6) -> list:
