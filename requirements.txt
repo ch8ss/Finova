@@ -16,4 +16,3 @@ plotly
 matplotlib
 streamlit-cookies-controller
 requests
-streamlit-mic-recorder

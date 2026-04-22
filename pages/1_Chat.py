@@ -299,15 +299,67 @@ if last_ai:
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
 mic_col, form_col = st.columns([1, 13])
 with mic_col:
-    try:
-        from streamlit_mic_recorder import mic_recorder
-        audio_result = mic_recorder(
-            start_prompt="", stop_prompt="",
-            just_once=True, use_container_width=False,
-            key="mic"
-        )
-    except Exception:
-        audio_result = None
+    components.html(f"""
+<style>body{{margin:0;padding:0;background:transparent;}}</style>
+<div style="display:flex;align-items:center;justify-content:center;height:52px;">
+  <button id="m" title="Click to speak"
+    style="width:44px;height:44px;border-radius:50%;
+           background:rgba(61,220,132,0.09);border:1px solid rgba(61,220,132,0.28);
+           cursor:pointer;display:flex;align-items:center;justify-content:center;
+           transition:all 0.2s;outline:none;padding:0;flex-shrink:0;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="#3ddc84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  </button>
+</div>
+<script>
+var b=document.getElementById('m');
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){{b.style.opacity='0.35';b.style.cursor='not-allowed';b.title='Not supported in this browser';}}
+else{{
+  var r=new SR();r.continuous=false;r.interimResults=false;r.lang='en-US';
+  var on=false;
+  b.onclick=function(){{
+    if(on){{r.stop();return;}}
+    try{{r.start();}}catch(e){{return;}}
+    on=true;
+    b.style.background='rgba(220,60,60,0.18)';
+    b.style.borderColor='rgba(220,60,60,0.5)';
+    b.style.boxShadow='0 0 0 4px rgba(220,60,60,0.12)';
+    b.querySelector('svg').setAttribute('stroke','#ff6060');
+  }};
+  function reset(){{
+    on=false;
+    b.style.background='rgba(61,220,132,0.09)';
+    b.style.borderColor='rgba(61,220,132,0.28)';
+    b.style.boxShadow='none';
+    b.querySelector('svg').setAttribute('stroke','#3ddc84');
+  }}
+  r.onresult=function(e){{
+    var txt=e.results[0][0].transcript;
+    reset();
+    var ins=window.parent.document.querySelectorAll('input[type="text"]');
+    for(var i=0;i<ins.length;i++){{
+      if(ins[i].placeholder&&ins[i].placeholder.toLowerCase().indexOf('ask')>-1){{
+        var sv=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;
+        sv.call(ins[i],txt);
+        ins[i].dispatchEvent(new Event('input',{{bubbles:true}}));
+        setTimeout(function(){{
+          var sb=window.parent.document.querySelectorAll('[data-testid="stFormSubmitButton"] button');
+          if(sb.length)sb[0].click();
+        }},120);
+        break;
+      }}
+    }}
+  }};
+  r.onend=reset;r.onerror=reset;
+}}
+</script>
+""", height=60)
 with form_col:
     with st.form(key="chat_form", clear_on_submit=True):
         c1, c2 = st.columns([7, 1])
@@ -315,25 +367,6 @@ with form_col:
             user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
         with c2:
             send = st.form_submit_button("Send")
-
-# ── Handle mic transcription ─────────────────────────────────────────────
-if audio_result:
-    from core.audio import transcribe_audio
-    with st.spinner("Transcribing..."):
-        question = transcribe_audio(audio_result["bytes"])
-    if question and question.strip():
-        st.session_state["messages"].append({"role": "user", "content": question})
-        st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
-        session_id = business_name.lower().replace(" ", "_")
-        user_id = st.session_state.get("user_id")
-        with st.spinner("Thinking..."):
-            reply = ask(question, session_id, user_id=user_id, business_type=business_type,
-                        has_uploaded=bool(st.session_state.get("uploaded_file_names")),
-                        conversation_id=st.session_state.get("conversation_id"))
-        st.session_state["messages"].append({"role": "assistant", "content": reply})
-        st.rerun()
-    else:
-        st.toast("Couldn't pick up audio — try again or type your question.", icon="🎙️")
 
 if send and user_input and user_input.strip():
     question = user_input.strip()
