@@ -74,10 +74,22 @@ body {{ background: {t['bg_solid']} !important; }}
 }}
 [data-testid="stMain"] {{ background: transparent !important; }}
 #MainMenu, footer, header, [data-testid="stToolbar"] {{ display: none !important; }}
-[data-testid="collapsedControl"] {{ display: none !important; }}
-section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px !important; }}
 [data-testid="stSidebarNav"] {{ display: none !important; }}
 .main .block-container {{ padding: 2rem 2.5rem 4rem !important; max-width: 1300px !important; }}
+
+@media (min-width: 769px) {{
+    [data-testid="collapsedControl"] {{ display: none !important; }}
+    section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px !important; }}
+}}
+@media (max-width: 768px) {{
+    [data-testid="collapsedControl"] {{ display: flex !important; color: {t['accent']} !important; }}
+    section[data-testid="stSidebar"] {{ min-width: 82vw !important; max-width: 82vw !important; }}
+    .main .block-container {{ padding: 1rem 0.85rem 5rem !important; }}
+    .page-title {{ font-size: 1.35rem; }}
+    .page-sub {{ margin-bottom: 1.25rem; }}
+    .msg-bubble-user {{ max-width: 88%; }}
+    .msg-ai-inner {{ max-width: 92%; }}
+}}
 
 [data-testid="stSidebar"] {{
     background: {t['sidebar_bg']} !important;
