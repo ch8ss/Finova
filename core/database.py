@@ -27,7 +27,7 @@ def load_messages(user_id: str, conversation_id: str = None, limit: int = 100):
     if conversation_id:
         query = query.eq("conversation_id", conversation_id)
     res = query.execute()
-    return [{"role": r["role"], "content": r["content"]} for r in reversed(res.data)]
+    return [{"role": r["role"], "content": r["content"]} for r in reversed(res.data or [])]
 
 
 def load_conversations(user_id: str, limit: int = 20):

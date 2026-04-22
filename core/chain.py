@@ -107,6 +107,8 @@ def process_uploaded_files(uploaded_files, user_id: str = None):
         try:
             docs = load_document(tmp_path, ext)
             all_docs.extend(docs)
+        except Exception:
+            pass
         finally:
             os.unlink(tmp_path)
 

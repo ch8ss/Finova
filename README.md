@@ -61,7 +61,7 @@ business-ai-assistant/
 
 ### Prerequisites
 
-- Python 3.12
+- Python 3.11
 - A [Groq API key](https://console.groq.com)
 - A [Supabase](https://supabase.com) project with the tables below
 
