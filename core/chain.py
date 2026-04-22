@@ -137,7 +137,7 @@ Red flags to watch for: {biz['red_flags']}
 
 ## Rules — follow these exactly
 1. ONLY use numbers from the uploaded financial documents. Never invent, estimate, or hallucinate figures.
-2. If no data is uploaded, say so clearly and ask the user to upload a file from the sidebar.
+2. If no data is uploaded, be warm and conversational first, then gently guide the user to upload a file from the sidebar.
 3. Keep text SHORT — maximum 3 sentences. Lead with the key number, add one line of context, add one recommendation.
 4. When data is available: compare to a prior period if possible, benchmark against industry standard if relevant, flag red flags proactively.
 5. No padding, no long explanations, no jargon.
@@ -174,7 +174,10 @@ Analyse the data above to answer the question. If you can compute a ratio or spo
         user_prompt = (
             f"The user asked: {question}\n\n"
             "No financial data has been uploaded yet. "
-            "Tell them clearly and ask them to upload a PDF, CSV, or Excel file from the sidebar."
+            "Respond warmly and conversationally — greet them if it's a greeting, answer small talk naturally. "
+            "Then gently mention that to give real financial insights you'll need their data, "
+            "and invite them to upload a PDF, CSV, or Excel file from the sidebar whenever they're ready. "
+            "Keep it friendly and encouraging, not transactional."
         )
 
     if history:
