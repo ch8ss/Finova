@@ -289,30 +289,29 @@ if last_ai:
         }}
         if(window.speechSynthesis.getVoices().length){{go();}}else{{window.speechSynthesis.onvoiceschanged=go;}}
     }})()"
-        style="background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.3);color:#52b788;
-               padding:0.35rem 0.9rem;border-radius:8px;cursor:pointer;font-size:0.78rem;
-               font-family:-apple-system,sans-serif;margin:0.25rem 0 0.5rem;">
-        &#128266; Read aloud
+        style="background:none;border:none;color:rgba(61,220,132,0.45);
+               padding:0;cursor:pointer;font-size:0.7rem;letter-spacing:0.03em;
+               font-family:-apple-system,sans-serif;margin:0.1rem 0 0.4rem;">
+        read aloud
     </button>
-    """, height=45)
+    """, height=30)
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
-form_col, mic_col = st.columns([14, 1])
-with form_col:
-    with st.form(key="chat_form", clear_on_submit=True):
-        c1, c2 = st.columns([6, 1])
-        with c1:
-            user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
-        with c2:
-            send = st.form_submit_button("Send")
-
+mic_col, form_col = st.columns([1, 13])
 audio = None
 with mic_col:
     try:
         audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
     except AttributeError:
         pass
+with form_col:
+    with st.form(key="chat_form", clear_on_submit=True):
+        c1, c2 = st.columns([7, 1])
+        with c1:
+            user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
+        with c2:
+            send = st.form_submit_button("Send")
 
 # ── Handle mic transcription ─────────────────────────────────────────────
 if audio is not None:
