@@ -1,21 +1,21 @@
 DARK = {
-    "bg": "linear-gradient(135deg, #0a1a0e 0%, #0d2410 50%, #071510 100%)",
-    "bg_solid": "#0a1a0e",
-    "text": "#e8f4f0",
-    "text_muted": "rgba(232,244,240,0.4)",
-    "text_faint": "rgba(232,244,240,0.2)",
-    "accent": "#52b788",
-    "accent_muted": "rgba(82,183,136,0.5)",
-    "accent_bg": "rgba(82,183,136,0.12)",
-    "accent_border": "rgba(82,183,136,0.3)",
-    "card_bg": "rgba(255,255,255,0.04)",
-    "card_border": "rgba(255,255,255,0.07)",
-    "input_bg": "rgba(255,255,255,0.05)",
-    "input_border": "rgba(255,255,255,0.1)",
-    "sidebar_bg": "rgba(10,26,14,0.85)",
-    "sidebar_border": "rgba(255,255,255,0.06)",
-    "divider": "rgba(255,255,255,0.05)",
-    "glow": "radial-gradient(ellipse, rgba(82,183,136,0.1) 0%, transparent 70%)",
+    "bg": "#000000",
+    "bg_solid": "#000000",
+    "text": "#dff2e8",
+    "text_muted": "rgba(223,242,232,0.45)",
+    "text_faint": "rgba(223,242,232,0.22)",
+    "accent": "#3ddc84",
+    "accent_muted": "rgba(61,220,132,0.55)",
+    "accent_bg": "rgba(61,220,132,0.09)",
+    "accent_border": "rgba(61,220,132,0.28)",
+    "card_bg": "linear-gradient(160deg, #091a0e 0%, #040d07 100%)",
+    "card_border": "rgba(61,220,132,0.18)",
+    "input_bg": "rgba(6,20,10,0.95)",
+    "input_border": "rgba(61,220,132,0.22)",
+    "sidebar_bg": "rgba(2,8,4,0.98)",
+    "sidebar_border": "rgba(61,220,132,0.12)",
+    "divider": "rgba(61,220,132,0.08)",
+    "glow": "radial-gradient(ellipse at 30% 20%, rgba(61,220,132,0.06) 0%, transparent 65%)",
     "toggle_icon": "",
     "toggle_label": "Light mode",
 }
@@ -49,6 +49,17 @@ def get_theme(mode: str) -> dict:
 
 def inject_theme(mode: str) -> str:
     t = get_theme(mode)
+    # Glossy dark-mode card shadow — only applied in dark mode
+    gloss_shadow = (
+        "0 8px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(61,220,132,0.04)"
+        if mode == "dark" else
+        "0 4px 24px rgba(0,0,0,0.06)"
+    )
+    gloss_hover_shadow = (
+        "0 12px 48px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.09), 0 0 20px rgba(61,220,132,0.07)"
+        if mode == "dark" else
+        "0 6px 28px rgba(0,0,0,0.1)"
+    )
     return f"""
 <style>
 *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -137,8 +148,8 @@ body {{ background: {t['bg_solid']} !important; }}
 
 [data-testid="stSidebar"] {{
     background: {t['sidebar_bg']} !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
     border-right: 1px solid {t['sidebar_border']} !important;
 }}
 [data-testid="stSidebar"] .stButton > button {{
@@ -152,7 +163,7 @@ body {{ background: {t['bg_solid']} !important; }}
     padding: 0.55rem 1rem !important;
     font-size: 0.87rem !important;
     text-align: left !important;
-    box-shadow: none !important;
+    box-shadow: {gloss_shadow} !important;
     transition: all 0.2s !important;
 }}
 [data-testid="stSidebar"] .stButton > button:hover {{
@@ -187,11 +198,23 @@ body {{ background: {t['bg_solid']} !important; }}
     border: 1px solid {t['card_border']};
     border-radius: 14px;
     padding: 1.5rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    box-shadow: {gloss_shadow};
     transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+}}
+.metric-card::before, .insight-card::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 14px 14px 0 0;
 }}
 .metric-card:hover, .insight-card:hover {{
     border-color: {t['accent_border']};
+    box-shadow: {gloss_hover_shadow};
 }}
 .metric-label {{
     font-size: 0.68rem; font-weight: 600;
@@ -269,6 +292,7 @@ body {{ background: {t['bg_solid']} !important; }}
     background: {t['card_bg']} !important;
     border: 1px solid {t['card_border']} !important;
     border-radius: 10px !important; margin-bottom: 0.5rem !important;
+    box-shadow: {gloss_shadow} !important;
 }}
 [data-testid="stExpander"] summary {{
     font-size: 0.86rem !important; font-weight: 600 !important;
@@ -285,6 +309,7 @@ body {{ background: {t['bg_solid']} !important; }}
     background: {t['card_bg']} !important;
     border: 1px solid {t['card_border']} !important;
     border-radius: 14px !important; padding: 0 !important; overflow: hidden !important;
+    box-shadow: {gloss_shadow} !important;
 }}
 [data-testid="stVerticalBlockBorderWrapper"] .stButton > button {{
     background: transparent !important;
@@ -308,10 +333,22 @@ body {{ background: {t['bg_solid']} !important; }}
     border: 1px solid {t['card_border']};
     border-radius: 16px; padding: 1.75rem;
     margin-bottom: 1.25rem;
+    box-shadow: {gloss_shadow};
+    position: relative; overflow: hidden;
+}}
+.chat-window::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 16px 16px 0 0;
 }}
 .msg-bubble-user {{
-    background: {t['accent_bg']};
+    background: linear-gradient(135deg, rgba(61,220,132,0.18) 0%, rgba(61,220,132,0.1) 100%);
     border: 1px solid {t['accent_border']};
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
     color: {t['text']}; font-size: 0.9rem;
     padding: 0.75rem 1.1rem; border-radius: 14px 14px 3px 14px;
     max-width: 65%; line-height: 1.55;
@@ -319,13 +356,25 @@ body {{ background: {t['bg_solid']} !important; }}
 .msg-bubble-ai {{
     background: {t['card_bg']};
     border: 1px solid {t['card_border']};
+    box-shadow: {gloss_shadow};
     color: {t['text']}; font-size: 0.9rem;
     line-height: 1.65; padding: 0.75rem 1.1rem;
     border-radius: 3px 14px 14px 14px;
+    position: relative; overflow: hidden;
+}}
+.msg-bubble-ai::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+    pointer-events: none;
 }}
 .msg-avatar {{
     width: 30px; height: 30px; min-width: 30px;
-    background: {t['accent_bg']}; border: 1px solid {t['accent_border']};
+    background: linear-gradient(145deg, rgba(61,220,132,0.2) 0%, rgba(61,220,132,0.08) 100%);
+    border: 1px solid {t['accent_border']};
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
     border-radius: 8px; display: flex; align-items: center;
     justify-content: center; color: {t['accent']};
     font-size: 0.65rem; font-weight: 700;
