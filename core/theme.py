@@ -191,7 +191,23 @@ section[data-testid="stSidebar"] {{ transform: none !important; min-width: 240px
 }}
 .stSelectbox label {{ color: {t['text_muted']} !important; font-size: 0.83rem !important; }}
 
+[data-testid="stFileUploaderDropzone"] {{
+    background: {t['input_bg']} !important;
+    border: 1px solid {t['input_border']} !important;
+    border-radius: 10px !important;
+}}
 [data-testid="stFileUploaderDropzone"] * {{ pointer-events: auto !important; }}
+[data-testid="stFileUploaderDropzone"] span,
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] p {{
+    color: {t['text_muted']} !important;
+}}
+[data-testid="stFileUploaderDropzone"] button {{
+    background: {t['accent_bg']} !important;
+    color: {t['accent']} !important;
+    border: 1px solid {t['accent_border']} !important;
+    border-radius: 8px !important;
+}}
 
 [data-testid="stExpander"] {{
     background: {t['card_bg']} !important;
