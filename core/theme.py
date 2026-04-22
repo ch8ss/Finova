@@ -84,12 +84,44 @@ body {{ background: {t['bg_solid']} !important; }}
 @media (max-width: 768px) {{
     [data-testid="collapsedControl"] {{ display: flex !important; color: {t['accent']} !important; }}
     section[data-testid="stSidebar"] {{ min-width: 82vw !important; max-width: 82vw !important; }}
-    .main .block-container {{ padding: 1rem 0.85rem 5rem !important; }}
+    .main .block-container {{ padding: 1rem 0.85rem 5.5rem !important; }}
     .page-title {{ font-size: 1.35rem; }}
     .page-sub {{ margin-bottom: 1.25rem; }}
     .msg-bubble-user {{ max-width: 88%; }}
     .msg-ai-inner {{ max-width: 92%; }}
+    .mobile-bottom-nav {{ display: flex !important; }}
 }}
+
+.mobile-bottom-nav {{
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 58px;
+    background: {t['sidebar_bg']};
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid {t['sidebar_border']};
+    z-index: 9999;
+    align-items: center;
+    justify-content: space-around;
+}}
+.mob-nav-item {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: {t['text_muted']};
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    gap: 3px;
+    min-width: 70px;
+    padding: 6px 0;
+}}
+.mob-nav-item.active {{ color: {t['accent']}; }}
+.mob-nav-icon {{ font-size: 1.25rem; line-height: 1; }}
+
 
 [data-testid="stSidebar"] {{
     background: {t['sidebar_bg']} !important;
@@ -300,4 +332,22 @@ body {{ background: {t['bg_solid']} !important; }}
 .stAlert {{ border-radius: 10px !important; }}
 p, li, span {{ color: {t['text']} !important; }}
 </style>
+"""
+
+
+def mobile_nav_html(active: str) -> str:
+    """Return HTML for the fixed mobile bottom nav. active is 'chat' or 'dashboard'."""
+    chat_class = "mob-nav-item active" if active == "chat" else "mob-nav-item"
+    dash_class = "mob-nav-item active" if active == "dashboard" else "mob-nav-item"
+    return f"""
+<nav class="mobile-bottom-nav">
+    <a href="/2_Dashboard" class="{dash_class}">
+        <span class="mob-nav-icon">&#9783;</span>
+        <span>Dashboard</span>
+    </a>
+    <a href="/1_Chat" class="{chat_class}">
+        <span class="mob-nav-icon">&#128172;</span>
+        <span>AI CFO</span>
+    </a>
+</nav>
 """

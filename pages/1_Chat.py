@@ -1,8 +1,10 @@
+import hashlib
 import html
 import json
 import re
 import uuid
 import streamlit as st
+import streamlit.components.v1 as components
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -10,7 +12,7 @@ from streamlit_cookies_controller import CookieController
 from core.chain import ask, process_uploaded_files
 from core.auth import sign_out
 from core.session import restore_session
-from core.theme import inject_theme, get_theme
+from core.theme import inject_theme, get_theme, mobile_nav_html
 from core.memory import clear_memory
 
 PLOT_COLORS = ['#52b788','#74c69d','#40916c','#b7e4c7','#2d6a4f','#95d5b2']
@@ -137,6 +139,7 @@ if "conversation_id" not in st.session_state:
     st.session_state["conversation_id"] = str(uuid.uuid4())
 
 st.markdown(inject_theme(mode), unsafe_allow_html=True)
+st.markdown(mobile_nav_html("chat"), unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
@@ -265,6 +268,20 @@ with st.container(border=True):
                 if chart_data:
                     render_chart(chart_data)
 
+# ── Read aloud for last AI response ─────────────────────────────────────
+last_ai = next((m for m in reversed(messages) if m["role"] == "assistant"), None)
+if last_ai:
+    last_text, _ = parse_response(last_ai["content"])
+    safe_text = last_text.replace("'", " ").replace('"', " ").replace("\n", " ").replace("`", " ")
+    components.html(f"""
+    <button onclick="window.speechSynthesis.cancel();window.speechSynthesis.speak(new SpeechSynthesisUtterance('{safe_text}'))"
+        style="background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.3);color:#52b788;
+               padding:0.35rem 0.9rem;border-radius:8px;cursor:pointer;font-size:0.78rem;
+               font-family:-apple-system,sans-serif;margin:0.25rem 0 0.5rem;">
+        &#128266; Read aloud
+    </button>
+    """, height=45)
+
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
 with st.form(key="chat_form", clear_on_submit=True):
@@ -273,6 +290,32 @@ with st.form(key="chat_form", clear_on_submit=True):
         user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
     with c2:
         send = st.form_submit_button("Send")
+
+# ── Mic input ────────────────────────────────────────────────────────────
+st.markdown(f'<div style="font-size:0.72rem;color:{t["text_faint"]};margin:0.4rem 0 0.3rem;">or speak</div>', unsafe_allow_html=True)
+try:
+    audio = st.audio_input("Speak your question", label_visibility="collapsed", key="mic_input")
+    if audio is not None:
+        audio_bytes = audio.read()
+        audio_hash = hashlib.md5(audio_bytes).hexdigest()
+        if st.session_state.get("_last_audio_hash") != audio_hash:
+            st.session_state["_last_audio_hash"] = audio_hash
+            from core.audio import transcribe_audio
+            with st.spinner("Transcribing..."):
+                question = transcribe_audio(audio_bytes)
+            if question and question.strip():
+                st.session_state["messages"].append({"role": "user", "content": question})
+                st.session_state["total_queries"] = st.session_state.get("total_queries", 0) + 1
+                session_id = business_name.lower().replace(" ", "_")
+                user_id = st.session_state.get("user_id")
+                with st.spinner("Thinking..."):
+                    reply = ask(question, session_id, user_id=user_id, business_type=business_type,
+                                has_uploaded=bool(st.session_state.get("uploaded_file_names")),
+                                conversation_id=st.session_state.get("conversation_id"))
+                st.session_state["messages"].append({"role": "assistant", "content": reply})
+                st.rerun()
+except AttributeError:
+    pass  # st.audio_input not available in this Streamlit version
 
 if send and user_input and user_input.strip():
     question = user_input.strip()
