@@ -106,22 +106,35 @@ body {{ background: {t['bg_solid']} !important; }}
 }}
 
 
+[data-testid="stAudioInput"],
 [data-testid="stAudioInput"] > div {{
+    width: 2.75rem !important;
     min-width: unset !important;
+    max-width: 2.75rem !important;
+    height: 2.75rem !important;
     padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }}
-[data-testid="stAudioInput"] [data-testid="stAudioInputWaveformContainer"],
-[data-testid="stAudioInput"] [data-testid="stAudioInputWaveform"],
-[data-testid="stAudioInput"] [class*="waveform"],
-[data-testid="stAudioInput"] [class*="timer"] {{
+[data-testid="stAudioInput"] > div > *:not(:first-child) {{
     display: none !important;
 }}
-[data-testid="stAudioInput"] [data-testid="stAudioInputRecordButton"],
-[data-testid="stAudioInput"] button:first-child {{
+[data-testid="stAudioInputWaveformContainer"],
+[data-testid="stAudioInputWaveform"],
+[class*="AudioInputWaveform"],
+[class*="AudioInputTimer"] {{
+    display: none !important;
+}}
+[data-testid="stAudioInput"] button,
+[data-testid="stAudioInputRecordButton"] {{
     width: 2.75rem !important;
     height: 2.75rem !important;
+    min-width: unset !important;
     border-radius: 50% !important;
     padding: 0 !important;
+    flex-shrink: 0 !important;
 }}
 
 [data-testid="stPageLink"] {{

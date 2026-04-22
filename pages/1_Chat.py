@@ -294,18 +294,21 @@ if last_ai:
 
 # ── Message input ───────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Your message</div>', unsafe_allow_html=True)
-with st.form(key="chat_form", clear_on_submit=True):
-    c1, c2 = st.columns([5, 1])
-    with c1:
-        user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
-    with c2:
-        send = st.form_submit_button("Send")
+form_col, mic_col = st.columns([14, 1])
+with form_col:
+    with st.form(key="chat_form", clear_on_submit=True):
+        c1, c2 = st.columns([6, 1])
+        with c1:
+            user_input = st.text_input("msg", placeholder=f"Ask about {business_name}...", label_visibility="collapsed")
+        with c2:
+            send = st.form_submit_button("Send")
 
 audio = None
-try:
-    audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
-except AttributeError:
-    pass
+with mic_col:
+    try:
+        audio = st.audio_input("", label_visibility="collapsed", key="mic_input")
+    except AttributeError:
+        pass
 
 # ── Handle mic transcription ─────────────────────────────────────────────
 if audio is not None:
@@ -327,6 +330,8 @@ if audio is not None:
                             conversation_id=st.session_state.get("conversation_id"))
             st.session_state["messages"].append({"role": "assistant", "content": reply})
             st.rerun()
+        else:
+            st.toast("Couldn't pick up audio — try again or type your question.", icon="🎙️")
 
 if send and user_input and user_input.strip():
     question = user_input.strip()

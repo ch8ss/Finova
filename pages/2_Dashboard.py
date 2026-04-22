@@ -1,3 +1,4 @@
+import uuid
 import streamlit as st
 from streamlit_cookies_controller import CookieController
 from core.auth import sign_out
@@ -65,6 +66,9 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     if st.button("AI CFO", key="nav_chat"):
+        st.session_state["messages"] = []
+        st.session_state["conversation_id"] = str(uuid.uuid4())
+        st.session_state["total_queries"] = 0
         st.switch_page("pages/1_Chat.py")
     if st.button("Switch account", key="nav_switch"):
         st.session_state["_signout_pending"] = True
@@ -95,8 +99,6 @@ st.markdown(f"""
 <div class="page-title">{business_name}</div>
 <div class="page-sub">Welcome back, {owner_name}. {business_type} dashboard.</div>
 """, unsafe_allow_html=True)
-
-st.page_link("pages/1_Chat.py", label="💬  Open AI CFO Chat")
 
 col_left, col_right = st.columns([1.4, 1], gap="large")
 
